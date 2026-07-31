@@ -3,1547 +3,966 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>秋招时间轴 - 2026</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <meta name="color-scheme" content="light" />
+    <title>Flatpickr 暖色日期选择器</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/plugins/monthSelect/monthSelect.css"
+    />
+
     <style>
       :root {
-        --paper: #faf6f0;
-        --paper-warm: #fdf8f2;
-        --ink: #1a1a1a;
-        --ink-strong: #000000;
-        --red: #d63031;
-        --red-bright: #e63946;
-        --card-bg: #fffefb;
-        --tag-bg: #fefefe;
-        --shadow-soft: 3px 4px 0px rgba(0, 0, 0, 0.08);
-        --shadow-sticker: 4px 5px 0px rgba(0, 0, 0, 0.12);
-        --border-thick: 3px;
-        --border-regular: 2.5px;
-        --radius-card: 8px 13px 7px 12px;
-        --radius-btn: 50px;
-        --radius-capsule: 40px;
-        --font-mono:
-          "SF Mono", "Cascadia Code", "JetBrains Mono", "Consolas", "Menlo",
-          monospace;
-        --font-sans:
-          "Inter", "SF Pro Display", "PingFang SC", "Microsoft YaHei",
-          "Helvetica Neue", sans-serif;
-        --font-display:
-          "Inter", "SF Pro Display", "PingFang SC", "Microsoft YaHei",
-          sans-serif;
+        --bg: #fffaf5;
+        --card: #fffdf9;
+        --line: #f3e2cf;
+        --text: #431407;
+        --muted: #9a6a4f;
+        --accent: #ea580c;
+        --accent-2: #f97316;
+        --accent-soft: #ffedd5;
+        --ring: rgba(234, 88, 12, 0.16);
+        --shadow: 0 18px 45px rgba(146, 64, 14, 0.1);
       }
 
       * {
-        margin: 0;
-        padding: 0;
         box-sizing: border-box;
       }
 
+      html,
       body {
-        background-color: #f5f0e8;
-        background-image:
-          repeating-linear-gradient(
-            0deg,
-            transparent,
-            transparent 3px,
-            rgba(180, 160, 140, 0.015) 3px,
-            rgba(180, 160, 140, 0.015) 6px
-          ),
-          radial-gradient(
-            ellipse at 20% 10%,
-            rgba(220, 200, 170, 0.08) 0%,
-            transparent 60%
-          ),
-          radial-gradient(
-            ellipse at 75% 60%,
-            rgba(200, 180, 150, 0.06) 0%,
-            transparent 55%
-          ),
-          radial-gradient(
-            ellipse at 50% 90%,
-            rgba(210, 190, 160, 0.05) 0%,
-            transparent 50%
-          );
-        background-color: #faf6f0;
-        font-family: var(--font-sans);
-        color: var(--ink);
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        padding: 32px 20px 80px;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        position: relative;
-        overflow-x: hidden;
+        margin: 0;
+        padding: 0;
       }
 
-      /* 纸张纹理叠加层 */
-      body::before {
+      body {
+        min-height: 100vh;
+        color: var(--text);
+        font-family:
+          "Inter", "Noto Sans SC", "PingFang SC", "Hiragino Sans GB",
+          "Microsoft YaHei", sans-serif;
+        background:
+          radial-gradient(circle at top left, #fff3e6, transparent 36%),
+          radial-gradient(circle at bottom right, #ffe8d2, transparent 32%),
+          var(--bg);
+      }
+
+      body::before,
+      body::after {
         content: "";
         position: fixed;
-        inset: 0;
+        z-index: -1;
+        border-radius: 50%;
+        filter: blur(85px);
+        opacity: 0.55;
         pointer-events: none;
-        z-index: 0;
-        background:
-          repeating-linear-gradient(
-            2deg,
-            transparent,
-            transparent 1px,
-            rgba(150, 130, 100, 0.012) 1px,
-            rgba(150, 130, 100, 0.012) 2px
-          ),
-          repeating-linear-gradient(
-            92deg,
-            transparent,
-            transparent 3px,
-            rgba(160, 140, 110, 0.008) 3px,
-            rgba(160, 140, 110, 0.008) 5px
-          );
-        opacity: 0.7;
       }
 
-      /* SVG滤镜 - 手绘线条效果 */
-      .svg-filters {
-        position: absolute;
-        width: 0;
-        height: 0;
-        pointer-events: none;
+      body::before {
+        width: 420px;
+        height: 420px;
+        background: #ffedd5;
+        top: -140px;
+        left: -120px;
+      }
+
+      body::after {
+        width: 380px;
+        height: 380px;
+        background: #ffe4c7;
+        bottom: -140px;
+        right: -100px;
+      }
+
+      ::selection {
+        background: #fed7aa;
+        color: #7c2d12;
+      }
+
+      .page {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 48px 20px 64px;
+      }
+
+      .hero {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid #fdba74;
+        background: #fff7ed;
+        color: #c2410c;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        box-shadow: 0 10px 24px rgba(234, 88, 12, 0.08);
+      }
+
+      .hero h1 {
+        margin: 18px 0 10px;
+        font-size: clamp(30px, 5vw, 46px);
+        line-height: 1.15;
+        letter-spacing: 0.5px;
+        color: #3f1306;
+      }
+
+      .subtitle {
+        max-width: 680px;
+        margin: 0 auto;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.8;
+      }
+
+      .error {
+        max-width: 960px;
+        margin: 0 auto 18px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: #fff1f2;
+        border: 1px solid #fecdd3;
+        color: #9f1239;
+        font-weight: 700;
+        line-height: 1.6;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+        align-items: start;
+      }
+
+      .panel {
+        position: relative;
         overflow: hidden;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 22px;
+        box-shadow: var(--shadow);
       }
 
-      /* 主容器 */
-      .main-container {
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        max-width: 780px;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-      }
-
-      /* ========== 顶部标题区 ========== */
-      .header-section {
-        margin-bottom: 6px;
-        position: relative;
-      }
-
-      .main-title {
-        font-family: var(--font-display);
-        font-size: clamp(2rem, 4.5vw, 3rem);
-        font-weight: 900;
-        color: var(--ink-strong);
-        letter-spacing: -0.02em;
-        line-height: 1.1;
-        margin-bottom: 20px;
-        position: relative;
-        display: inline-block;
-        padding-bottom: 2px;
-      }
-
-      .main-title::after {
+      .panel::before {
         content: "";
         position: absolute;
-        bottom: -2px;
-        left: 0;
-        width: 105%;
+        inset: 0 0 auto 0;
         height: 5px;
-        background: var(--ink-strong);
-        border-radius: 1px 3px 2px 1px;
-        filter: url(#handrawn-line);
+        background: linear-gradient(90deg, #fdba74, #fb923c, #ea580c);
+        opacity: 0.92;
       }
 
-      /* ========== 筛选按钮行 ========== */
-      .filter-row {
+      .summary {
+        grid-column: 1 / -1;
+      }
+
+      .panel-head {
         display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-bottom: 14px;
-      }
-
-      .pill-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 10px 22px;
-        border-radius: var(--radius-btn);
-        font-family: var(--font-sans);
-        font-size: 0.9rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1.2);
-        user-select: none;
-        white-space: nowrap;
-        letter-spacing: -0.01em;
-        position: relative;
-        border: 2.5px solid var(--ink-strong);
-        background: var(--ink-strong);
-        color: #fff;
-        box-shadow: 2px 3px 0px rgba(0, 0, 0, 0.15);
-        text-decoration: none;
-        outline: none;
-      }
-
-      .pill-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 4px 5px 0px rgba(0, 0, 0, 0.18);
-      }
-      .pill-btn:active {
-        transform: translateY(1px);
-        box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2);
-        transition: all 0.05s ease;
-      }
-      .pill-btn.active {
-        background: var(--ink-strong);
-        color: #fff;
-        box-shadow: 3px 4px 0px rgba(0, 0, 0, 0.2);
-      }
-      .pill-btn.inactive {
-        background: transparent;
-        color: var(--ink-strong);
-        box-shadow: 1px 2px 0px rgba(0, 0, 0, 0.06);
-      }
-      .pill-btn.inactive:hover {
-        background: rgba(0, 0, 0, 0.03);
-        box-shadow: 3px 4px 0px rgba(0, 0, 0, 0.12);
-      }
-
-      /* 白色圆形选择框 */
-      .circle-selector {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        border: 2.5px solid var(--ink-strong);
-        background: #fffefb;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1.2);
-        flex-shrink: 0;
-        box-shadow: 2px 3px 0px rgba(0, 0, 0, 0.1);
-        position: relative;
-      }
-      .circle-selector:hover {
-        transform: translateY(-2px) rotate(15deg);
-        box-shadow: 4px 5px 0px rgba(0, 0, 0, 0.15);
-        background: #fffef9;
-      }
-      .circle-selector:active {
-        transform: translateY(1px) rotate(0deg);
-        box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2);
-        transition: all 0.05s ease;
-      }
-      .circle-selector .inner-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: var(--ink-strong);
-        transition: all 0.3s ease;
-      }
-      .circle-selector.checked .inner-dot {
-        background: var(--red-bright);
-        transform: scale(1.4);
-        box-shadow: 0 0 8px rgba(230, 57, 70, 0.4);
-      }
-
-      /* ========== 行业标签行 ========== */
-      .industry-tags {
-        display: flex;
-        align-items: center;
-        gap: 9px;
-        flex-wrap: wrap;
-        margin-bottom: 24px;
-      }
-      .industry-tag {
-        display: inline-flex;
-        align-items: center;
-        padding: 8px 18px;
-        border-radius: var(--radius-btn);
-        font-family: var(--font-sans);
-        font-size: 0.82rem;
-        font-weight: 700;
-        cursor: pointer;
-        user-select: none;
-        white-space: nowrap;
-        letter-spacing: -0.01em;
-        transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1.15);
-        border: 2.5px solid var(--ink-strong);
-        background: var(--ink-strong);
-        color: #fff;
-        box-shadow: 2px 3px 0px rgba(0, 0, 0, 0.12);
-      }
-      .industry-tag:hover {
-        transform: translateY(-2px);
-        box-shadow: 3px 4px 0px rgba(0, 0, 0, 0.18);
-      }
-      .industry-tag:active {
-        transform: translateY(1px);
-        box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2);
-      }
-      .industry-tag.active-tag {
-        background: var(--ink-strong);
-        color: #fff;
-        box-shadow: 3px 4px 0px rgba(0, 0, 0, 0.22);
-      }
-      .industry-tag.subdued {
-        background: transparent;
-        color: var(--ink-strong);
-        box-shadow: 1px 2px 0px rgba(0, 0, 0, 0.05);
-      }
-      .industry-tag.subdued:hover {
-        background: rgba(0, 0, 0, 0.03);
-        box-shadow: 3px 4px 0px rgba(0, 0, 0, 0.12);
-      }
-
-      /* ========== 时间轴主体 ========== */
-      .timeline-wrapper {
-        position: relative;
-        padding-left: 60px;
-        margin-top: 8px;
-      }
-
-      /* 墨线时间轴 */
-      .timeline-ink-line {
-        position: absolute;
-        left: 24px;
-        top: 0;
-        bottom: 0;
-        width: 5px;
-        background: var(--ink-strong);
-        border-radius: 3px 2px 2px 3px;
-        transform-origin: top center;
-        filter: url(#handrawn-line);
-        z-index: 0;
-      }
-
-      /* 日期节点组 */
-      .timeline-date-group {
-        position: relative;
-        margin-bottom: 28px;
-        z-index: 1;
-      }
-
-      /* 日期节点圆点 */
-      .date-node {
-        position: absolute;
-        left: -36px;
-        top: 6px;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: var(--ink-strong);
-        border: 3px solid var(--ink-strong);
-        z-index: 2;
-        box-shadow: 0 0 0 4px var(--paper);
-        transition: all 0.3s ease;
-      }
-      .date-node.today-node {
-        width: 24px;
-        height: 24px;
-        left: -39px;
-        top: 3px;
-        background: var(--red-bright);
-        border-color: var(--red-bright);
-        box-shadow:
-          0 0 0 5px var(--paper),
-          0 0 16px rgba(214, 48, 49, 0.35);
-        animation: nodePulse 2.5s ease-in-out infinite;
-      }
-      @keyframes nodePulse {
-        0%,
-        100% {
-          box-shadow:
-            0 0 0 5px var(--paper),
-            0 0 16px rgba(214, 48, 49, 0.35);
-        }
-        50% {
-          box-shadow:
-            0 0 0 8px var(--paper),
-            0 0 28px rgba(214, 48, 49, 0.55);
-        }
-      }
-
-      /* 日期标签 */
-      .date-label {
-        font-family: var(--font-mono);
-        font-size: 0.85rem;
-        font-weight: 700;
-        color: var(--ink-strong);
-        letter-spacing: -0.02em;
-        margin-bottom: 6px;
-        padding-left: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-      .date-label .date-text {
-        font-size: 1rem;
-      }
-      .date-label .urgent-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        background: var(--red-bright);
-        color: #fff;
-        font-family: var(--font-sans);
-        font-size: 0.75rem;
-        font-weight: 800;
-        padding: 4px 12px;
-        border-radius: var(--radius-capsule);
-        letter-spacing: 0.02em;
-        animation: badgeShake 4s ease-in-out infinite;
-        box-shadow: 2px 2px 0px rgba(180, 30, 30, 0.3);
-      }
-      @keyframes badgeShake {
-        0%,
-        95%,
-        100% {
-          transform: translateX(0);
-        }
-        96% {
-          transform: translateX(-3px);
-        }
-        97% {
-          transform: translateX(3px);
-        }
-        98% {
-          transform: translateX(-2px);
-        }
-        99% {
-          transform: translateX(1px);
-        }
-      }
-      .date-label .urgent-badge .badge-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: #fff;
-        animation: dotBlink 0.8s ease-in-out infinite;
-      }
-      @keyframes dotBlink {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.2;
-        }
-      }
-
-      /* ========== 卡片容器 ========== */
-      .cards-row {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        position: relative;
-      }
-
-      /* 贴纸式卡片 */
-      .job-card {
-        background: var(--card-bg);
-        border: var(--border-thick) solid var(--ink-strong);
-        border-radius: 9px 14px 7px 13px;
-        padding: 18px 20px 16px 20px;
-        position: relative;
-        box-shadow: var(--shadow-sticker);
-        transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1.15);
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        filter: url(#handrawn-card);
-        /* 每张卡片微调圆角模拟手绘 */
-        transform-origin: center center;
-      }
-      .job-card:nth-child(1) {
-        border-radius: 10px 13px 6px 14px;
-      }
-      .job-card:nth-child(2) {
-        border-radius: 7px 15px 9px 11px;
-      }
-      .job-card:nth-child(3) {
-        border-radius: 11px 10px 8px 15px;
-      }
-      .job-card:nth-child(4) {
-        border-radius: 8px 14px 10px 12px;
-      }
-      .job-card:nth-child(5) {
-        border-radius: 12px 11px 7px 14px;
-      }
-
-      .job-card:hover {
-        transform: translateY(-4px) rotate(-0.3deg);
-        box-shadow: 7px 8px 0px rgba(0, 0, 0, 0.16);
-        border-color: var(--ink-strong);
-        background: #fffefc;
-        transition: all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.1);
-      }
-      .job-card:active {
-        transform: translateY(1px);
-        box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);
-        transition: all 0.04s ease;
-      }
-
-      /* 红色胶囊标签 */
-      .card-urgent-tag {
-        position: absolute;
-        top: -13px;
-        right: 16px;
-        background: var(--red-bright);
-        color: #fff;
-        font-family: var(--font-sans);
-        font-size: 0.7rem;
-        font-weight: 800;
-        padding: 5px 14px;
-        border-radius: var(--radius-capsule);
-        letter-spacing: 0.03em;
-        z-index: 3;
-        white-space: nowrap;
-        box-shadow: 2px 2px 0px rgba(170, 30, 30, 0.35);
-        border: 2px solid #b52020;
-        animation: tagFloat 3s ease-in-out infinite;
-      }
-      @keyframes tagFloat {
-        0%,
-        100% {
-          transform: translateY(0);
-        }
-        30% {
-          transform: translateY(-4px);
-        }
-        60% {
-          transform: translateY(-1px);
-        }
-      }
-
-      /* 卡片内容布局 */
-      .card-header-row {
-        display: flex;
-        justify-content: space-between;
         align-items: flex-start;
-        gap: 12px;
+        gap: 14px;
+        margin-bottom: 18px;
       }
-      .card-org-name {
-        font-family: var(--font-display);
-        font-size: 1.05rem;
-        font-weight: 800;
-        color: var(--ink-strong);
-        letter-spacing: -0.01em;
-        line-height: 1.3;
-        flex: 1;
+
+      .panel-icon {
+        flex: 0 0 auto;
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #fff1e2, #fed7aa);
+        color: #c2410c;
+        box-shadow: inset 0 0 0 1px #fdba74;
       }
-      .card-tags-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-items: center;
+
+      .panel-icon svg {
+        width: 20px;
+        height: 20px;
       }
-      .card-small-tag {
-        font-family: var(--font-sans);
-        font-size: 0.7rem;
-        font-weight: 700;
-        padding: 3px 10px;
-        border-radius: 20px;
-        border: 2px solid var(--ink-strong);
-        background: transparent;
-        color: var(--ink-strong);
-        letter-spacing: 0.01em;
-        white-space: nowrap;
+
+      .panel-head h2 {
+        margin: 0;
+        font-size: 18px;
+        color: #7c2d12;
       }
-      .card-batch-tag {
-        font-family: var(--font-sans);
-        font-size: 0.72rem;
-        font-weight: 700;
-        color: #555;
-        letter-spacing: 0.01em;
-        white-space: nowrap;
+
+      .panel-head p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 13.5px;
+        line-height: 1.6;
       }
-      .card-bottom-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 2px;
+
+      .control {
+        position: relative;
       }
-      .card-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-family: var(--font-sans);
-        font-size: 0.8rem;
-        font-weight: 700;
-        color: var(--ink-strong);
-        text-decoration: none;
-        letter-spacing: -0.01em;
+
+      .control .icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 19px;
+        height: 19px;
+        color: var(--accent);
+        pointer-events: none;
+        display: grid;
+        place-items: center;
+      }
+
+      .control .icon svg {
+        width: 19px;
+        height: 19px;
+      }
+
+      .control .chev {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 16px;
+        height: 16px;
+        color: #d97706;
+        pointer-events: none;
+        display: grid;
+        place-items: center;
+      }
+
+      .control .chev svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .control input {
+        width: 100%;
+        height: 54px;
+        border: 1.5px solid #f0d9c5;
+        border-radius: 16px;
+        background: #ffffff;
+        color: var(--text);
+        font: inherit;
+        font-size: 15px;
+        padding: 0 44px 0 46px;
+        outline: none;
         cursor: pointer;
-        transition: all 0.2s ease;
-        padding: 4px 0;
-        border-bottom: 2px solid transparent;
-        white-space: nowrap;
+        transition:
+          border-color 0.18s ease,
+          box-shadow 0.18s ease,
+          background 0.18s ease;
       }
-      .card-link:hover {
-        border-bottom-color: var(--ink-strong);
-        gap: 10px;
+
+      .control input::placeholder {
+        color: #c79b7d;
       }
-      .card-link .arrow-icon {
+
+      .control input:hover {
+        border-color: #fdba74;
+      }
+
+      .control input:focus,
+      .control input.active {
+        border-color: #fb923c;
+        background: #fffdf9;
+        box-shadow: 0 0 0 4px var(--ring);
+      }
+
+      .status {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        padding: 14px 15px;
+        border-radius: 18px;
+        background: #fff8ef;
+        border: 1px solid #f6dfc7;
+      }
+
+      .status-label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        color: #b08364;
+      }
+
+      .status strong {
+        font-size: 15px;
+        color: #9a3412;
+        word-break: break-all;
+      }
+
+      .status.empty strong {
+        color: #bb8d6d;
+        font-weight: 600;
+      }
+
+      .status-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .ghost-btn {
+        border: 1px solid #f6d7ba;
+        background: #ffffff;
+        color: #c2410c;
+        border-radius: 12px;
+        padding: 8px 12px;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        transition:
+          transform 0.16s ease,
+          background 0.16s ease,
+          box-shadow 0.16s ease;
+      }
+
+      .ghost-btn:hover {
+        background: #ffedd5;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px rgba(234, 88, 12, 0.1);
+      }
+
+      .ghost-btn:active {
+        transform: translateY(0);
+      }
+
+      .ghost-btn.warn {
+        color: #b91c1c;
+        border-color: #fecaca;
+      }
+
+      .ghost-btn.warn:hover {
+        background: #fef2f2;
+      }
+
+      .code {
+        margin: 0;
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: #2b1710;
+        color: #ffe8d1;
+        border: 1px solid #5b2f1d;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+          monospace;
+        font-size: 13px;
+        line-height: 1.75;
+        overflow: auto;
+        white-space: pre;
+      }
+
+      .foot {
+        margin-top: 26px;
+        text-align: center;
+        color: #b08364;
+        font-size: 13px;
+        line-height: 1.8;
+      }
+
+      .foot code {
         display: inline-block;
-        font-size: 1rem;
-        transition: transform 0.2s ease;
+        padding: 2px 8px;
+        border-radius: 8px;
+        background: #fff1e3;
+        border: 1px solid #f3d3b3;
+        color: #9a3412;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
+      @media (max-width: 860px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* ----------------------------- */
+      /* Flatpickr 暖色主题覆盖         */
+      /* ----------------------------- */
+
+      .flatpickr-calendar {
+        font-family: inherit;
+        background: #fffdf9;
+        border: 1px solid #f3dcc8;
+        border-radius: 20px;
+        box-shadow: 0 30px 80px rgba(124, 45, 18, 0.22);
+        width: 320px !important;
+        max-width: calc(100vw - 32px);
+        padding: 10px;
+        box-sizing: border-box;
+      }
+
+      .flatpickr-calendar.arrowTop:before,
+      .flatpickr-calendar.arrowTop:after,
+      .flatpickr-calendar.arrowBottom:before,
+      .flatpickr-calendar.arrowBottom:after {
+        display: none;
+      }
+
+      .flatpickr-innerContainer,
+      .flatpickr-rContainer,
+      .flatpickr-days,
+      .dayContainer {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+
+      .flatpickr-months {
+        padding: 4px 2px 8px;
+      }
+
+      .flatpickr-months .flatpickr-month {
+        height: 46px;
+        color: #7c2d12;
+      }
+
+      .flatpickr-current-month {
+        font-size: 15px;
+        font-weight: 900;
+        color: #7c2d12;
+        padding-top: 10px;
+      }
+
+      .flatpickr-current-month .flatpickr-monthDropdown-months {
+        background: transparent;
+        color: #7c2d12;
+        font-weight: 900;
+        border-radius: 8px;
+      }
+
+      .flatpickr-current-month .flatpickr-monthDropdown-months:hover {
+        background: #ffedd5;
+      }
+
+      .flatpickr-current-month input.cur-year {
+        color: #7c2d12;
         font-weight: 900;
       }
-      .card-link:hover .arrow-icon {
-        transform: translateX(4px);
+
+      .numInputWrapper {
+        border-radius: 10px;
       }
 
-      /* 已过期的卡片样式 */
-      .job-card.expired {
-        opacity: 0.6;
-        border-style: dashed;
-        border-color: #999;
-        background: #fafaf7;
-      }
-      .job-card.expired:hover {
-        opacity: 0.75;
-        border-color: #777;
-        box-shadow: 3px 4px 0px rgba(0, 0, 0, 0.06);
-      }
-      .job-card.expired .card-org-name {
-        color: #777;
+      .numInputWrapper:hover {
+        background: #ffedd5;
       }
 
-      /* ========== 响应式 ========== */
-      @media (max-width: 640px) {
-        .timeline-wrapper {
-          padding-left: 40px;
-        }
-        .timeline-ink-line {
-          left: 14px;
-          width: 4px;
-        }
-        .date-node {
-          left: -26px;
-          width: 14px;
-          height: 14px;
-          top: 7px;
-          box-shadow: 0 0 0 3px var(--paper);
-        }
-        .date-node.today-node {
-          left: -29px;
-          width: 20px;
-          height: 20px;
-          top: 4px;
-          box-shadow:
-            0 0 0 4px var(--paper),
-            0 0 12px rgba(214, 48, 49, 0.3);
-        }
-        .job-card {
-          padding: 14px 15px 12px 15px;
-          border-width: 2.5px;
-        }
-        .card-urgent-tag {
-          top: -10px;
-          right: 8px;
-          font-size: 0.65rem;
-          padding: 4px 10px;
-        }
-        .filter-row {
-          gap: 6px;
-        }
-        .pill-btn {
-          padding: 8px 14px;
-          font-size: 0.78rem;
-          border-width: 2px;
-        }
-        .industry-tag {
-          padding: 6px 12px;
-          font-size: 0.72rem;
-          border-width: 2px;
-        }
-        .circle-selector {
-          width: 32px;
-          height: 32px;
-          border-width: 2px;
-        }
-        .main-title {
-          font-size: 1.6rem;
-        }
+      .flatpickr-months .flatpickr-prev-month,
+      .flatpickr-months .flatpickr-next-month {
+        padding: 12px;
+        color: #c2410c;
       }
-      @media (max-width: 400px) {
-        .timeline-wrapper {
-          padding-left: 30px;
-        }
-        .timeline-ink-line {
-          left: 8px;
-          width: 3px;
-        }
-        .date-node {
-          left: -22px;
-          width: 11px;
-          height: 11px;
-          top: 8px;
-        }
-        .date-node.today-node {
-          left: -25px;
-          width: 17px;
-          height: 17px;
-          top: 5px;
-        }
-        .job-card {
-          padding: 10px 12px 10px 12px;
-          border-width: 2px;
-        }
-        .card-org-name {
-          font-size: 0.9rem;
-        }
-        .pill-btn {
-          padding: 6px 10px;
-          font-size: 0.7rem;
-        }
-        .industry-tag {
-          padding: 5px 10px;
-          font-size: 0.68rem;
-        }
+
+      .flatpickr-months .flatpickr-prev-month svg,
+      .flatpickr-months .flatpickr-next-month svg {
+        width: 16px;
+        height: 16px;
+        fill: #c2410c;
+        transition:
+          fill 0.16s ease,
+          transform 0.16s ease;
+      }
+
+      .flatpickr-months .flatpickr-prev-month:hover svg,
+      .flatpickr-months .flatpickr-next-month:hover svg {
+        fill: #9a3412;
+        transform: scale(1.08);
+      }
+
+      span.flatpickr-weekday {
+        color: #b45309;
+        font-weight: 800;
+        font-size: 12px;
+      }
+
+      .flatpickr-day {
+        border-radius: 11px;
+        color: #431407;
+        max-width: none;
+        height: 38px;
+        line-height: 36px;
+        transition:
+          background 0.15s ease,
+          color 0.15s ease,
+          border-color 0.15s ease;
+      }
+
+      .flatpickr-day.today {
+        border-color: #fb923c;
+        background: #fff7ed;
+        color: #c2410c;
+        font-weight: 900;
+      }
+
+      .flatpickr-day:hover {
+        background: #ffedd5;
+        border-color: #ffedd5;
+      }
+
+      .flatpickr-day.selected,
+      .flatpickr-day.startRange,
+      .flatpickr-day.endRange {
+        background: linear-gradient(135deg, #fb923c, #ea580c);
+        border-color: transparent;
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(234, 88, 12, 0.28);
+      }
+
+      .flatpickr-day.today.selected {
+        color: #fff;
+        border-color: transparent;
+      }
+
+      .flatpickr-day.prevMonthDay,
+      .flatpickr-day.nextMonthDay {
+        color: #d8b8a2;
+      }
+
+      .flatpickr-day.flatpickr-disabled {
+        color: #ead9cb;
+      }
+
+      /* 年月选择插件 */
+      .flatpickr-monthSelect-months {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        padding: 8px 2px 4px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .flatpickr-monthSelect-month {
+        border-radius: 13px;
+        border: 1px solid #f6dfc9;
+        background: #fff8f0;
+        color: #7c2d12;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 12px 0;
+        cursor: pointer;
+        transition:
+          background 0.16s ease,
+          border-color 0.16s ease,
+          transform 0.16s ease,
+          box-shadow 0.16s ease;
+      }
+
+      .flatpickr-monthSelect-month:hover {
+        background: #ffedd5;
+        border-color: #fdba74;
+        transform: translateY(-1px);
+      }
+
+      .flatpickr-monthSelect-theme-light .flatpickr-monthSelect-month.selected,
+      .flatpickr-monthSelect-month.selected {
+        background: linear-gradient(135deg, #fb923c, #ea580c) !important;
+        border-color: transparent !important;
+        color: #fff !important;
+        box-shadow: 0 10px 22px rgba(234, 88, 12, 0.25);
       }
     </style>
   </head>
   <body>
-    <!-- SVG滤镜定义 -->
-    <svg class="svg-filters" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <!-- 手绘线条滤镜 - 用于时间轴墨线 -->
-        <filter id="handrawn-line" x="-20%" y="-10%" width="140%" height="120%">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.04"
-            numOctaves="4"
-            seed="3"
-            result="noise"
-          />
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="noise"
-            scale="1.2"
-            xChannelSelector="R"
-            yChannelSelector="G"
-            result="displaced"
-          />
-          <feMerge>
-            <feMergeNode in="displaced" />
-          </feMerge>
-        </filter>
-        <!-- 手绘卡片边框滤镜 - 非常微妙 -->
-        <filter id="handrawn-card" x="-5%" y="-5%" width="110%" height="110%">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.06"
-            numOctaves="3"
-            seed="7"
-            result="noise"
-          />
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="noise"
-            scale="0.8"
-            xChannelSelector="R"
-            yChannelSelector="B"
-            result="displaced"
-          />
-          <feMerge>
-            <feMergeNode in="displaced" />
-          </feMerge>
-        </filter>
-        <!-- 更明显的手绘滤镜 - 用于特定卡片 -->
-        <filter
-          id="handrawn-card-alt"
-          x="-6%"
-          y="-6%"
-          width="112%"
-          height="112%"
-        >
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.05"
-            numOctaves="3"
-            seed="12"
-            result="noise"
-          />
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="noise"
-            scale="1.1"
-            xChannelSelector="G"
-            yChannelSelector="R"
-            result="displaced"
-          />
-          <feMerge>
-            <feMergeNode in="displaced" />
-          </feMerge>
-        </filter>
-      </defs>
-    </svg>
+    <main class="page">
+      <section class="hero">
+        <span class="badge">🍑 Flatpickr · 单文件暖色示例</span>
+        <h1>暖色日期选择器</h1>
+        <p class="subtitle">
+          包含「具体年月日」与「年月」两种选择场景。页面展示为中文友好格式，隐藏输入框中保留适合后端提交的
+          ISO 格式。
+        </p>
+      </section>
 
-    <!-- 主容器 -->
-    <div class="main-container" id="mainContainer">
-      <!-- 标题 -->
-      <div class="header-section">
-        <h1 class="main-title">秋招时间轴</h1>
+      <div id="cdnError" class="error" hidden>
+        Flatpickr 或 monthSelect 插件资源加载失败。请检查网络，或确认 CDN
+        是否可访问。
       </div>
 
-      <!-- 筛选按钮行 -->
-      <div class="filter-row" id="filterRow">
-        <button
-          class="pill-btn active"
-          data-filter="deadline"
-          aria-label="按截止日期排序"
-        >
-          按截止日期
-        </button>
-        <button
-          class="pill-btn inactive"
-          data-filter="added"
-          aria-label="按收录日期排序"
-        >
-          按收录日期
-        </button>
-        <button
-          class="pill-btn inactive"
-          data-filter="grad2027"
-          aria-label="只看2027届"
-        >
-          只看2027届
-        </button>
-        <div
-          class="circle-selector"
-          id="circleSelector"
-          title="日历视图切换"
-          aria-label="日历选择器"
-        >
-          <span class="inner-dot"></span>
-        </div>
-      </div>
+      <section class="grid">
+        <article class="panel">
+          <div class="panel-head">
+            <div class="panel-icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="3"></rect>
+                <path d="M8 3v4M16 3v4M3 10h18"></path>
+              </svg>
+            </div>
+            <div>
+              <h2>具体年月日</h2>
+              <p>选择完整日期，隐藏值格式：<strong>YYYY-MM-DD</strong></p>
+            </div>
+          </div>
 
-      <!-- 行业标签 -->
-      <div class="industry-tags" id="industryTags">
-        <span class="industry-tag active-tag" data-industry="all">全部</span>
-        <span class="industry-tag subdued" data-industry="internet"
-          >互联网</span
-        >
-        <span class="industry-tag subdued" data-industry="nev">新能源车企</span>
-        <span class="industry-tag subdued" data-industry="research"
-          >科研院所</span
-        >
-        <span class="industry-tag subdued" data-industry="public"
-          >事业单位</span
-        >
-        <span class="industry-tag subdued" data-industry="finance">金融</span>
-        <span class="industry-tag subdued" data-industry="semiconductor"
-          >半导体</span
-        >
-      </div>
+          <div class="control" id="dateControl">
+            <span class="icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="3"></rect>
+                <path d="M8 3v4M16 3v4M3 10h18"></path>
+              </svg>
+            </span>
 
-      <!-- 时间轴主体 -->
-      <div class="timeline-wrapper" id="timelineWrapper">
-        <!-- 墨线 -->
-        <div class="timeline-ink-line" id="inkLine"></div>
+            <input
+              id="datePicker"
+              name="date"
+              autocomplete="off"
+              placeholder="请选择具体日期"
+              aria-label="具体年月日"
+            />
 
-        <!-- ====== 日期节点：2026-07-14（今天截止！） ====== -->
-        <div class="timeline-date-group" data-date="2026-07-14">
-          <div class="date-node today-node" id="todayNode"></div>
-          <div class="date-label">
-            <span class="date-text">2026-07-14</span>
-            <span class="urgent-badge">
-              <span class="badge-dot"></span> 今天截止！
+            <span class="chev" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.1"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m6 9 6 6 6-6"></path>
+              </svg>
             </span>
           </div>
-          <div class="cards-row">
-            <!-- 卡片1：科研院所 - 今天截止 -->
-            <div
-              class="job-card"
-              data-industry="research"
-              data-grad="2026"
-              data-deadline="2026-07-14"
-              id="card1"
-            >
-              <span class="card-urgent-tag">今天截止</span>
-              <div class="card-header-row">
-                <span class="card-org-name"
-                  >中国科学院 · 空天信息创新研究院</span
-                >
-              </div>
-              <div class="card-tags-row">
-                <span class="card-small-tag">科研院所</span>
-                <span class="card-small-tag">北京</span>
-                <span class="card-batch-tag">2026届 正式批</span>
-              </div>
-              <div class="card-bottom-row">
-                <span style="font-size: 0.7rem; color: #888"
-                  >算法岗 · 遥感方向</span
-                >
-                <a class="card-link" href="#" aria-label="网申直链">
-                  网申直链 <span class="arrow-icon">→</span>
-                </a>
-              </div>
-            </div>
-            <!-- 卡片2：事业单位 - 今天截止 -->
-            <div
-              class="job-card"
-              data-industry="public"
-              data-grad="2026"
-              data-deadline="2026-07-14"
-              id="card2"
-            >
-              <span class="card-urgent-tag">今天截止</span>
-              <div class="card-header-row">
-                <span class="card-org-name">国家知识产权局专利局</span>
-              </div>
-              <div class="card-tags-row">
-                <span class="card-small-tag">事业单位</span>
-                <span class="card-small-tag">北京</span>
-                <span class="card-batch-tag">2026届 正式批</span>
-              </div>
-              <div class="card-bottom-row">
-                <span style="font-size: 0.7rem; color: #888"
-                  >审查岗 · 电子信息类</span
-                >
-                <a class="card-link" href="#" aria-label="网申直链">
-                  网申直链 <span class="arrow-icon">→</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- ====== 日期节点：2026-07-20 ====== -->
-        <div class="timeline-date-group" data-date="2026-07-20">
-          <div class="date-node"></div>
-          <div class="date-label">
-            <span class="date-text">2026-07-20</span>
-          </div>
-          <div class="cards-row">
-            <!-- 卡片3：互联网 -->
-            <div
-              class="job-card"
-              data-industry="internet"
-              data-grad="2026"
-              data-deadline="2026-07-20"
-              id="card3"
-            >
-              <div class="card-header-row">
-                <span class="card-org-name">字节跳动 · TikTok 研发</span>
-              </div>
-              <div class="card-tags-row">
-                <span class="card-small-tag">互联网</span>
-                <span class="card-small-tag">上海</span>
-                <span class="card-batch-tag">2026届 正式批</span>
-              </div>
-              <div class="card-bottom-row">
-                <span style="font-size: 0.7rem; color: #888"
-                  >后端开发 · 推荐系统</span
-                >
-                <a class="card-link" href="#" aria-label="网申直链">
-                  网申直链 <span class="arrow-icon">→</span>
-                </a>
-              </div>
+          <div class="status empty" id="dateStatus">
+            <div>
+              <span class="status-label">当前选择</span>
+              <strong id="dateResult">尚未选择日期</strong>
             </div>
-            <!-- 卡片4：新能源车企 -->
-            <div
-              class="job-card"
-              data-industry="nev"
-              data-grad="2026"
-              data-deadline="2026-07-20"
-              id="card4"
-            >
-              <div class="card-header-row">
-                <span class="card-org-name">比亚迪 · 智能驾驶研究院</span>
-              </div>
-              <div class="card-tags-row">
-                <span class="card-small-tag">新能源车企</span>
-                <span class="card-small-tag">深圳</span>
-                <span class="card-batch-tag">2026届 正式批</span>
-              </div>
-              <div class="card-bottom-row">
-                <span style="font-size: 0.7rem; color: #888"
-                  >感知算法 · 自动驾驶</span
-                >
-                <a class="card-link" href="#" aria-label="网申直链">
-                  网申直链 <span class="arrow-icon">→</span>
-                </a>
-              </div>
+            <div class="status-actions">
+              <button type="button" class="ghost-btn" id="dateToday">
+                今天
+              </button>
+              <button type="button" class="ghost-btn warn" id="dateClear">
+                清空
+              </button>
             </div>
           </div>
-        </div>
+        </article>
 
-        <!-- ====== 日期节点：2026-08-01 ====== -->
-        <div class="timeline-date-group" data-date="2026-08-01">
-          <div class="date-node"></div>
-          <div class="date-label">
-            <span class="date-text">2026-08-01</span>
-          </div>
-          <div class="cards-row">
-            <!-- 卡片5：金融 -->
-            <div
-              class="job-card"
-              data-industry="finance"
-              data-grad="2027"
-              data-deadline="2026-08-01"
-              id="card5"
-            >
-              <div class="card-header-row">
-                <span class="card-org-name">中金公司 · 量化交易部</span>
-              </div>
-              <div class="card-tags-row">
-                <span class="card-small-tag">金融</span>
-                <span class="card-small-tag">北京</span>
-                <span class="card-batch-tag">2027届 提前批</span>
-              </div>
-              <div class="card-bottom-row">
-                <span style="font-size: 0.7rem; color: #888"
-                  >量化研究员 · 暑期实习</span
-                >
-                <a class="card-link" href="#" aria-label="网申直链">
-                  网申直链 <span class="arrow-icon">→</span>
-                </a>
-              </div>
+        <article class="panel">
+          <div class="panel-head">
+            <div class="panel-icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="3"></rect>
+                <path d="M8 3v4M16 3v4M3 10h18"></path>
+                <path d="M8 15h4"></path>
+              </svg>
+            </div>
+            <div>
+              <h2>年月选择</h2>
+              <p>只选择年月，隐藏值格式：<strong>YYYY-MM</strong></p>
             </div>
           </div>
-        </div>
 
-        <!-- ====== 日期节点：2026-08-15 ====== -->
-        <div class="timeline-date-group" data-date="2026-08-15">
-          <div class="date-node"></div>
-          <div class="date-label">
-            <span class="date-text">2026-08-15</span>
+          <div class="control" id="monthControl">
+            <span class="icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="3"></rect>
+                <path d="M8 3v4M16 3v4M3 10h18"></path>
+                <path d="M8 15h4"></path>
+              </svg>
+            </span>
+
+            <input
+              id="monthPicker"
+              name="month"
+              autocomplete="off"
+              placeholder="请选择年月"
+              aria-label="年月选择"
+            />
+
+            <span class="chev" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.1"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m6 9 6 6 6-6"></path>
+              </svg>
+            </span>
           </div>
-          <div class="cards-row">
-            <!-- 卡片6：半导体 + 互联网 -->
-            <div
-              class="job-card"
-              data-industry="semiconductor"
-              data-grad="2027"
-              data-deadline="2026-08-15"
-              id="card6"
-            >
-              <div class="card-header-row">
-                <span class="card-org-name">华为 · 海思半导体</span>
-              </div>
-              <div class="card-tags-row">
-                <span class="card-small-tag">半导体</span>
-                <span class="card-small-tag">上海</span>
-                <span class="card-batch-tag">2027届 提前批</span>
-              </div>
-              <div class="card-bottom-row">
-                <span style="font-size: 0.7rem; color: #888"
-                  >芯片设计 · 数字IC</span
-                >
-                <a class="card-link" href="#" aria-label="网申直链">
-                  网申直链 <span class="arrow-icon">→</span>
-                </a>
-              </div>
+
+          <div class="status empty" id="monthStatus">
+            <div>
+              <span class="status-label">当前选择</span>
+              <strong id="monthResult">尚未选择年月</strong>
             </div>
-            <!-- 卡片7：互联网 - 已过期 -->
-            <div
-              class="job-card expired"
-              data-industry="internet"
-              data-grad="2026"
-              data-deadline="2026-07-08"
-              id="card7"
-            >
-              <div class="card-header-row">
-                <span class="card-org-name">腾讯 · 微信事业群</span>
-              </div>
-              <div class="card-tags-row">
-                <span class="card-small-tag">互联网</span>
-                <span class="card-small-tag">广州</span>
-                <span class="card-batch-tag">2026届 正式批</span>
-                <span style="font-size: 0.65rem; color: #c00; font-weight: 700"
-                  >已截止</span
-                >
-              </div>
-              <div class="card-bottom-row">
-                <span style="font-size: 0.7rem; color: #999"
-                  >前端开发 · 企业微信</span
-                >
-                <span style="font-size: 0.7rem; color: #999">网申已关闭</span>
-              </div>
+            <div class="status-actions">
+              <button type="button" class="ghost-btn" id="monthNow">
+                本月
+              </button>
+              <button type="button" class="ghost-btn warn" id="monthClear">
+                清空
+              </button>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </article>
+
+        <article class="panel summary">
+          <div class="panel-head">
+            <div class="panel-icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m8 6-5 6 5 6"></path>
+                <path d="m16 6 5 6-5 6"></path>
+              </svg>
+            </div>
+            <div>
+              <h2>当前选择结果</h2>
+              <p>下方为实时更新的提交值，可直接用于表单或接口参数。</p>
+            </div>
+          </div>
+
+          <pre id="output" class="code">
+{
+  "date": "",
+  "month": ""
+}</pre
+          >
+        </article>
+      </section>
+
+      <footer class="foot">
+        隐藏输入框 <code>name="date"</code> 与
+        <code>name="month"</code> 会随表单提交。<br />
+        显示文本为中文格式，提交值保持 <code>YYYY-MM-DD</code> /
+        <code>YYYY-MM</code>。
+      </footer>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/zh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/plugins/monthSelect/index.js"></script>
 
     <script>
       (function () {
-        // 注册 GSAP 插件（如果有的话）
-        // gsap.registerPlugin();
+        const errorEl = document.getElementById("cdnError");
 
-        const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+        if (!window.flatpickr || !window.monthSelectPlugin) {
+          if (errorEl) errorEl.hidden = false;
+          return;
+        }
 
-        // 获取元素
-        const inkLine = document.getElementById("inkLine");
-        const todayNode = document.getElementById("todayNode");
-        const allCards = document.querySelectorAll(".job-card");
-        const dateGroups = document.querySelectorAll(".timeline-date-group");
-        const dateNodes = document.querySelectorAll(
-          ".date-node:not(.today-node)",
-        );
-        const filterRow = document.getElementById("filterRow");
-        const industryTags = document.getElementById("industryTags");
-        const circleSelector = document.getElementById("circleSelector");
-        const mainTitle = document.querySelector(".main-title");
+        if (window.flatpickr.l10ns && flatpickr.l10ns.zh) {
+          flatpickr.localize(flatpickr.l10ns.zh);
+        }
 
-        // 初始隐藏所有动画元素
-        gsap.set(inkLine, { scaleY: 0, transformOrigin: "top center" });
-        gsap.set(allCards, { opacity: 0, y: 80, rotation: 0 });
-        gsap.set(dateNodes, { scale: 0, transformOrigin: "center center" });
-        gsap.set(todayNode, { scale: 0, transformOrigin: "center center" });
-        gsap.set(".date-label", { opacity: 0, x: -15 });
-        gsap.set(".card-urgent-tag", { opacity: 0, y: -20 });
-        gsap.set(filterRow.children, { opacity: 0, y: -20 });
-        gsap.set(industryTags.children, { opacity: 0, y: -15 });
-        gsap.set(mainTitle, { opacity: 0, y: -30 });
+        const els = {
+          output: document.getElementById("output"),
+          dateStatus: document.getElementById("dateStatus"),
+          dateResult: document.getElementById("dateResult"),
+          monthStatus: document.getElementById("monthStatus"),
+          monthResult: document.getElementById("monthResult"),
+        };
 
-        // 构建动画序列
-        // 阶段1：标题和筛选栏出现
-        tl.to(mainTitle, {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          ease: "power3.out",
-        });
+        let dateValue = "";
+        let monthValue = "";
+        let dateFp = null;
+        let monthFp = null;
 
-        tl.to(
-          filterRow.children,
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.4,
-            stagger: 0.06,
-            ease: "back.out(1.4)",
-          },
-          "-=0.3",
-        );
-
-        tl.to(
-          industryTags.children,
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.4,
-            stagger: 0.05,
-            ease: "back.out(1.3)",
-          },
-          "-=0.2",
-        );
-
-        // 阶段2：墨线时间轴从顶部延伸下来
-        tl.to(
-          inkLine,
-          {
-            scaleY: 1,
-            duration: 0.7,
-            ease: "power3.inOut",
-          },
-          "-=0.1",
-        );
-
-        // 阶段3：日期节点依次弹出
-        tl.to(
-          todayNode,
-          {
-            scale: 1,
-            duration: 0.5,
-            ease: "elastic.out(1, 0.5)",
-          },
-          "-=0.3",
-        );
-
-        tl.to(
-          dateNodes,
-          {
-            scale: 1,
-            duration: 0.4,
-            stagger: 0.1,
-            ease: "back.out(1.8)",
-          },
-          "-=0.2",
-        );
-
-        // 阶段4：日期标签淡入
-        tl.to(
-          ".date-label",
-          {
-            opacity: 1,
-            x: 0,
-            duration: 0.4,
-            stagger: 0.08,
-            ease: "power2.out",
-          },
-          "-=0.3",
-        );
-
-        // 阶段5：卡片落桌动效 - 核心动画
-        // 卡片依次从上方落下，带有弹跳和微旋转
-        const cardStaggerConfig = [
-          { rot: -1.5, y: 120, delay: 0 },
-          { rot: 1.2, y: 140, delay: 0.08 },
-          { rot: -0.8, y: 100, delay: 0.04 },
-          { rot: 1.6, y: 150, delay: 0.12 },
-          { rot: -1.0, y: 110, delay: 0.06 },
-          { rot: 0.7, y: 130, delay: 0.1 },
-          { rot: -1.3, y: 105, delay: 0.14 },
-        ];
-
-        allCards.forEach((card, index) => {
-          const config = cardStaggerConfig[index] || {
-            rot: 0,
-            y: 120,
-            delay: index * 0.08,
-          };
-          const cardTl = gsap.timeline();
-
-          // 设置初始状态
-          gsap.set(card, {
-            opacity: 0,
-            y: config.y,
-            rotation: config.rot * 1.5,
-            transformOrigin: "center top",
-          });
-
-          // 添加到主时间轴
-          tl.to(
-            card,
-            {
-              opacity: 1,
-              y: 0,
-              rotation: config.rot,
-              duration: 0.7,
-              ease: "customEase",
-              onStart: function () {
-                // 使用弹性缓动模拟落桌弹跳
-                gsap.to(card, {
-                  y: 0,
-                  rotation: config.rot,
-                  duration: 0.75,
-                  ease: "elastic.out(1, 0.55)",
-                  overwrite: true,
-                  delay: 0.02,
-                });
-              },
-            },
-            `-=0.35+${config.delay}`,
+        function cnDate(date) {
+          if (!date) return "";
+          return (
+            date.getFullYear() +
+            "年" +
+            (date.getMonth() + 1) +
+            "月" +
+            date.getDate() +
+            "日"
           );
+        }
 
-          // 卡片落地后的微 settle 动画
-          tl.to(
-            card,
+        function cnMonth(date) {
+          if (!date) return "";
+          return date.getFullYear() + "年" + (date.getMonth() + 1) + "月";
+        }
+
+        function updateOutput() {
+          if (!els.output) return;
+          els.output.textContent = JSON.stringify(
             {
-              rotation: config.rot * 0.3,
-              duration: 0.3,
-              ease: "power2.out",
+              date: dateValue || "",
+              month: monthValue || "",
             },
-            `+=0.05`,
+            null,
+            2,
           );
-        });
+        }
 
-        // 阶段6：红色"今天截止"胶囊标签弹出
-        tl.to(
-          ".card-urgent-tag",
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.45,
-            stagger: 0.1,
-            ease: "back.out(2)",
-          },
-          "-=0.4",
-        );
+        function prepareInput(instance, placeholder) {
+          const alt = instance.altInput;
 
-        // 播放动画
-        tl.play();
+          if (alt) {
+            alt.removeAttribute("id");
+            alt.removeAttribute("name");
+            alt.classList.add("picker-input");
+            alt.placeholder = placeholder;
+            alt.readOnly = true;
+          } else if (instance.input) {
+            instance.input.classList.add("picker-input");
+            instance.input.placeholder = placeholder;
+            instance.input.readOnly = true;
+          }
+        }
 
-        // ========== 交互逻辑 ==========
+        function refreshDate(selectedDates, dateStr, instance) {
+          const date = selectedDates && selectedDates[0];
 
-        // 筛选按钮切换
-        const pillBtns = filterRow.querySelectorAll(".pill-btn");
-        pillBtns.forEach((btn) => {
-          btn.addEventListener("click", function () {
-            pillBtns.forEach((b) => b.classList.remove("active"));
-            pillBtns.forEach((b) => b.classList.add("inactive"));
-            this.classList.remove("inactive");
-            this.classList.add("active");
+          dateValue = instance && instance.input ? instance.input.value : "";
 
-            // 小弹跳反馈
-            gsap.fromTo(
-              this,
-              { scale: 1 },
-              {
-                scale: 0.9,
-                duration: 0.1,
-                yoyo: true,
-                repeat: 1,
-                ease: "power2.inOut",
-              },
-            );
-
-            const filterType = this.dataset.filter;
-            if (filterType === "grad2027") {
-              filterByGrad2027();
-            } else if (filterType === "deadline") {
-              resetAllCards();
-            } else if (filterType === "added") {
-              // 按收录日期排序 - 视觉上重新排列（此处做简化处理）
-              gsap.fromTo(
-                ".cards-row",
-                { opacity: 1 },
-                {
-                  opacity: 0.7,
-                  duration: 0.15,
-                  yoyo: true,
-                  repeat: 1,
-                  ease: "power2.inOut",
-                },
-              );
-            }
-          });
-        });
-
-        // 行业标签切换
-        const indTags = industryTags.querySelectorAll(".industry-tag");
-        indTags.forEach((tag) => {
-          tag.addEventListener("click", function () {
-            indTags.forEach((t) => {
-              t.classList.remove("active-tag");
-              t.classList.add("subdued");
-            });
-            this.classList.remove("subdued");
-            this.classList.add("active-tag");
-
-            gsap.fromTo(
-              this,
-              { scale: 1 },
-              {
-                scale: 0.88,
-                duration: 0.12,
-                yoyo: true,
-                repeat: 1,
-                ease: "power2.inOut",
-              },
-            );
-
-            const industry = this.dataset.industry;
-            filterByIndustry(industry);
-          });
-        });
-
-        // 白色圆形选择框
-        circleSelector.addEventListener("click", function () {
-          this.classList.toggle("checked");
-          const dot = this.querySelector(".inner-dot");
-          if (this.classList.contains("checked")) {
-            gsap.to(dot, {
-              scale: 1.5,
-              duration: 0.3,
-              ease: "elastic.out(1, 0.5)",
-            });
-            gsap.to(this, { rotation: 25, duration: 0.4, ease: "power2.out" });
-            // 高亮所有今天截止的卡片
-            gsap.to(".card-urgent-tag", {
-              scale: 1.15,
-              duration: 0.3,
-              yoyo: true,
-              repeat: 1,
-              ease: "power2.inOut",
-            });
+          if (date) {
+            els.dateResult.textContent = cnDate(date);
+            els.dateStatus.classList.remove("empty");
           } else {
-            gsap.to(dot, { scale: 1, duration: 0.3, ease: "power2.inOut" });
-            gsap.to(this, { rotation: 0, duration: 0.4, ease: "power2.out" });
+            els.dateResult.textContent = "尚未选择日期";
+            els.dateStatus.classList.add("empty");
           }
-        });
 
-        // 卡片点击反馈
-        allCards.forEach((card) => {
-          card.addEventListener("click", function (e) {
-            // 如果点击的是链接，不触发卡片动画
-            if (e.target.closest(".card-link")) return;
-            if (this.classList.contains("expired")) return;
+          updateOutput();
+        }
 
-            gsap
-              .timeline()
-              .to(this, {
-                scale: 0.96,
-                duration: 0.08,
-                ease: "power2.in",
-              })
-              .to(this, {
-                scale: 1.03,
-                duration: 0.2,
-                ease: "elastic.out(1, 0.4)",
-              })
-              .to(this, {
-                scale: 1,
-                duration: 0.15,
-                ease: "power2.out",
-              });
-          });
+        function refreshMonth(selectedDates, dateStr, instance) {
+          const date = selectedDates && selectedDates[0];
 
-          // 悬停时微旋转
-          card.addEventListener("mouseenter", function () {
-            if (this.classList.contains("expired")) return;
-            const currentRot =
-              parseFloat(
-                this.style.transform?.match(/rotate\(([^)]+)deg\)/)?.[1],
-              ) || 0;
-            gsap.to(this, {
-              rotation: currentRot + (Math.random() - 0.5) * 1.5,
-              duration: 0.3,
-              ease: "power2.out",
-              overwrite: "auto",
-            });
-          });
-          card.addEventListener("mouseleave", function () {
-            if (this.classList.contains("expired")) return;
-            gsap.to(this, {
-              rotation: 0,
-              duration: 0.4,
-              ease: "elastic.out(1, 0.5)",
-              overwrite: "auto",
-            });
-          });
-        });
+          monthValue = instance && instance.input ? instance.input.value : "";
 
-        // 链接点击阻止冒泡
-        document.querySelectorAll(".card-link").forEach((link) => {
-          link.addEventListener("click", function (e) {
-            e.stopPropagation();
-            gsap.fromTo(
-              this,
-              { scale: 1 },
-              {
-                scale: 0.9,
-                duration: 0.1,
-                yoyo: true,
-                repeat: 1,
-                ease: "power2.inOut",
-              },
-            );
-          });
-        });
-
-        // ========== 筛选函数 ==========
-        function filterByIndustry(industry) {
-          const cards = document.querySelectorAll(".job-card");
-          if (industry === "all") {
-            cards.forEach((card) => {
-              gsap.to(card, {
-                opacity: card.classList.contains("expired") ? 0.6 : 1,
-                scale: 1,
-                duration: 0.35,
-                ease: "power2.out",
-                display: "flex",
-              });
-            });
-            return;
+          if (date) {
+            els.monthResult.textContent = cnMonth(date);
+            els.monthStatus.classList.remove("empty");
+          } else {
+            els.monthResult.textContent = "尚未选择年月";
+            els.monthStatus.classList.add("empty");
           }
-          cards.forEach((card) => {
-            const cardIndustry = card.dataset.industry;
-            if (cardIndustry === industry) {
-              gsap.to(card, {
-                opacity: card.classList.contains("expired") ? 0.6 : 1,
-                scale: 1,
-                duration: 0.35,
-                ease: "back.out(1.2)",
-                display: "flex",
-              });
-            } else {
-              gsap.to(card, {
-                opacity: 0,
-                scale: 0.9,
-                duration: 0.25,
-                ease: "power2.in",
-                onComplete: () => {
-                  card.style.display = "none";
-                },
-              });
+
+          updateOutput();
+        }
+
+        function closeOthers(current) {
+          [dateFp, monthFp].forEach(function (fp) {
+            if (fp && fp !== current && fp.isOpen) {
+              fp.close();
             }
           });
         }
 
-        function filterByGrad2027() {
-          const cards = document.querySelectorAll(".job-card");
-          cards.forEach((card) => {
-            const grad = card.dataset.grad;
-            if (grad === "2027") {
-              gsap.to(card, {
-                opacity: card.classList.contains("expired") ? 0.6 : 1,
-                scale: 1,
-                duration: 0.35,
-                ease: "back.out(1.2)",
-                display: "flex",
-              });
-            } else {
-              gsap.to(card, {
-                opacity: 0,
-                scale: 0.9,
-                duration: 0.25,
-                ease: "power2.in",
-                onComplete: () => {
-                  card.style.display = "none";
-                },
-              });
-            }
-          });
-        }
-
-        function resetAllCards() {
-          const cards = document.querySelectorAll(".job-card");
-          cards.forEach((card) => {
-            card.style.display = "flex";
-            gsap.to(card, {
-              opacity: card.classList.contains("expired") ? 0.6 : 1,
-              scale: 1,
-              duration: 0.35,
-              ease: "power2.out",
-            });
-          });
-        }
-
-        // ========== 键盘导航 ==========
-        document.addEventListener("keydown", function (e) {
-          if (e.key === "r" && e.ctrlKey) {
-            e.preventDefault();
-            resetAllCards();
-            indTags.forEach((t) => {
-              t.classList.remove("active-tag");
-              t.classList.add("subdued");
-            });
-            const allTag = industryTags.querySelector('[data-industry="all"]');
-            if (allTag) {
-              allTag.classList.remove("subdued");
-              allTag.classList.add("active-tag");
-            }
-            pillBtns.forEach((b) => {
-              b.classList.remove("active");
-              b.classList.add("inactive");
-            });
-            const deadlineBtn = filterRow.querySelector(
-              '[data-filter="deadline"]',
-            );
-            if (deadlineBtn) {
-              deadlineBtn.classList.remove("inactive");
-              deadlineBtn.classList.add("active");
-            }
-            circleSelector.classList.remove("checked");
-          }
+        dateFp = flatpickr("#datePicker", {
+          dateFormat: "Y-m-d",
+          altInput: true,
+          altFormat: "Y年n月j日",
+          defaultDate: new Date(),
+          disableMobile: true,
+          allowInput: false,
+          positionElement: document.getElementById("dateControl"),
+          onReady: function (selectedDates, dateStr, instance) {
+            prepareInput(instance, "请选择具体日期");
+            refreshDate(selectedDates, dateStr, instance);
+          },
+          onChange: refreshDate,
+          onOpen: function (selectedDates, dateStr, instance) {
+            closeOthers(instance);
+          },
         });
 
-        console.log(
-          "🍂 秋招时间轴已就绪 | GSAP 落桌动效完成 | 新粗野主义 × 手绘风格",
-        );
-        console.log("   💡 提示：点击筛选按钮和行业标签进行交互");
-        console.log("   🎯 今天日期：2026-07-14 — 红色标注为今日截止");
-        console.log("   🖱️ 悬停卡片查看贴纸微动效果");
+        monthFp = flatpickr("#monthPicker", {
+          defaultDate: new Date(),
+          disableMobile: true,
+          allowInput: false,
+          positionElement: document.getElementById("monthControl"),
+          plugins: [
+            monthSelectPlugin({
+              shorthand: false,
+              dateFormat: "Y-m",
+              altFormat: "Y年n月",
+              theme: "light",
+            }),
+          ],
+          onReady: function (selectedDates, dateStr, instance) {
+            prepareInput(instance, "请选择年月");
+            refreshMonth(selectedDates, dateStr, instance);
+          },
+          onChange: refreshMonth,
+          onOpen: function (selectedDates, dateStr, instance) {
+            closeOthers(instance);
+          },
+        });
+
+        document
+          .getElementById("dateToday")
+          .addEventListener("click", function () {
+            dateFp.setDate(new Date(), true);
+          });
+
+        document
+          .getElementById("dateClear")
+          .addEventListener("click", function () {
+            dateFp.clear(true);
+          });
+
+        document
+          .getElementById("monthNow")
+          .addEventListener("click", function () {
+            monthFp.setDate(new Date(), true);
+          });
+
+        document
+          .getElementById("monthClear")
+          .addEventListener("click", function () {
+            monthFp.clear(true);
+          });
       })();
     </script>
   </body>

@@ -1,0 +1,3470 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>模室 ModelTea · 大模型茶饮店</title>
+    <style>
+      /* ============ 基础 ============ */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      :root {
+        --ink: #141412;
+        --paper: #ffffff;
+        --bg: #f4f3ee;
+        --gray: #6f6e68;
+        --faint: #9a988f;
+        --line: #d8d6cd;
+        --soft: #efede5;
+        --serif:
+          "Songti SC", "STSongti-SC", "Noto Serif SC", "SimSun", Georgia, serif;
+        --sans:
+          -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue",
+          "Microsoft YaHei", Helvetica, Arial, sans-serif;
+        --mono:
+          ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        font-family: var(--sans);
+        color: var(--ink);
+        background: var(--bg);
+        background-image: radial-gradient(#dcdad1 1px, transparent 1px);
+        background-size: 22px 22px;
+        display: flex;
+        flex-direction: column;
+        min-height: 100dvh;
+        overflow-x: hidden;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: none;
+        cursor: pointer;
+      }
+      input {
+        font: inherit;
+        color: inherit;
+      }
+      ::selection {
+        background: var(--ink);
+        color: var(--paper);
+      }
+
+      /* ============ 顶部行情 Ticker ============ */
+      .ticker {
+        background: var(--ink);
+        color: var(--paper);
+        overflow: hidden;
+        white-space: nowrap;
+        position: relative;
+        z-index: 5;
+      }
+      .ticker-track {
+        display: inline-block;
+        padding: 7px 0;
+        font: 600 10.5px/1 var(--mono);
+        letter-spacing: 0.12em;
+        animation: tick 46s linear infinite;
+      }
+      .ticker:hover .ticker-track {
+        animation-play-state: paused;
+      }
+      .ticker-track em {
+        font-style: normal;
+        opacity: 0.45;
+        margin: 0 14px;
+      }
+      @keyframes tick {
+        to {
+          transform: translateX(-50%);
+        }
+      }
+
+      /* ============ 舞台布局 ============ */
+      .stage {
+        flex: 1;
+        width: 100%;
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 44px 40px 70px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 56px;
+        align-items: center;
+      }
+
+      /* ---- 左侧介绍面板 ---- */
+      .panel {
+        max-width: 560px;
+      }
+      .panel > * {
+        opacity: 0;
+        animation: rise 0.7s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+      }
+      .panel > *:nth-child(1) {
+        animation-delay: 0.05s;
+      }
+      .panel > *:nth-child(2) {
+        animation-delay: 0.12s;
+      }
+      .panel > *:nth-child(3) {
+        animation-delay: 0.19s;
+      }
+      .panel > *:nth-child(4) {
+        animation-delay: 0.26s;
+      }
+      .panel > *:nth-child(5) {
+        animation-delay: 0.33s;
+      }
+      .panel > *:nth-child(6) {
+        animation-delay: 0.4s;
+      }
+      .panel > *:nth-child(7) {
+        animation-delay: 0.47s;
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .overline {
+        font: 600 11px var(--mono);
+        letter-spacing: 0.28em;
+        color: var(--gray);
+      }
+      .overline::before {
+        content: "— ";
+        color: var(--ink);
+      }
+      .brand {
+        font-family: var(--serif);
+        font-weight: 900;
+        font-size: clamp(64px, 7.5vw, 104px);
+        line-height: 0.98;
+        letter-spacing: 0.02em;
+        margin: 14px 0 6px;
+      }
+      .brand .hollow {
+        color: transparent;
+        -webkit-text-stroke: 2.5px var(--ink);
+      }
+      .wordmark {
+        font-weight: 800;
+        font-size: 13px;
+        letter-spacing: 0.42em;
+        margin-bottom: 22px;
+      }
+      .wordmark small {
+        display: block;
+        font: 500 10px var(--mono);
+        letter-spacing: 0.3em;
+        color: var(--faint);
+        margin-top: 6px;
+      }
+      .lede {
+        font-size: 15px;
+        line-height: 1.9;
+        color: #4a4944;
+        max-width: 42ch;
+        margin-bottom: 26px;
+      }
+      .lede b {
+        background: var(--ink);
+        color: var(--paper);
+        padding: 1px 6px;
+        font-weight: 600;
+      }
+
+      .map-table {
+        border-top: 2.5px solid var(--ink);
+        margin-bottom: 26px;
+      }
+      .map-row {
+        display: grid;
+        grid-template-columns: 1fr auto 1.4fr;
+        align-items: center;
+        gap: 14px;
+        padding: 11px 10px;
+        border-bottom: 1px solid var(--line);
+        transition:
+          background 0.18s,
+          color 0.18s;
+        cursor: default;
+      }
+      .map-row:hover {
+        background: var(--ink);
+        color: var(--paper);
+      }
+      .map-row:hover .map-en {
+        color: #bdbbb2;
+      }
+      .map-cn {
+        font-family: var(--serif);
+        font-weight: 700;
+        font-size: 17px;
+      }
+      .map-arrow {
+        font: 700 12px var(--mono);
+      }
+      .map-en {
+        font: 600 11px var(--mono);
+        letter-spacing: 0.06em;
+        color: var(--gray);
+      }
+
+      .roster-title {
+        font: 600 10.5px var(--mono);
+        letter-spacing: 0.24em;
+        color: var(--gray);
+        margin-bottom: 8px;
+      }
+      .roster {
+        margin-bottom: 24px;
+      }
+      .roster-row {
+        display: grid;
+        grid-template-columns: 30px 1fr auto;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px dashed var(--line);
+        transition: all 0.18s;
+      }
+      .roster-row:hover {
+        background: var(--ink);
+        color: var(--paper);
+        transform: translateX(5px);
+      }
+      .roster-row:hover .rr-en,
+      .roster-row:hover .rr-price {
+        color: #bdbbb2;
+      }
+      .roster-row:hover .rr-chip {
+        border-color: var(--paper);
+        background: transparent;
+        color: var(--paper);
+      }
+      .rr-chip {
+        width: 28px;
+        height: 28px;
+        border: 1.5px solid var(--ink);
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        background: var(--paper);
+        color: var(--ink);
+        transition: all 0.18s;
+      }
+      .rr-chip svg {
+        width: 17px;
+        height: 17px;
+      }
+      .rr-name {
+        font-weight: 700;
+        font-size: 13px;
+        line-height: 1.2;
+      }
+      .rr-en {
+        font: 500 9.5px var(--mono);
+        color: var(--faint);
+        letter-spacing: 0.05em;
+      }
+      .rr-price {
+        font: 700 11.5px var(--mono);
+        color: var(--gray);
+      }
+      .footnote {
+        font: 600 10px var(--mono);
+        letter-spacing: 0.2em;
+        color: var(--faint);
+      }
+
+      /* ---- 手机 ---- */
+      .phone-wrap {
+        position: relative;
+        display: flex;
+        justify-content: center;
+      }
+      .bg-tea {
+        position: absolute;
+        z-index: 0;
+        right: -140px;
+        top: -90px;
+        font-family: var(--serif);
+        font-size: 430px;
+        font-weight: 900;
+        line-height: 1;
+        color: transparent;
+        -webkit-text-stroke: 1.5px #d5d3ca;
+        user-select: none;
+        pointer-events: none;
+        animation: drift 14s ease-in-out infinite alternate;
+      }
+      @keyframes drift {
+        from {
+          transform: translateY(0) rotate(-2deg);
+        }
+        to {
+          transform: translateY(26px) rotate(2deg);
+        }
+      }
+      .fchip {
+        position: absolute;
+        z-index: 0;
+        font: 700 11px var(--mono);
+        border: 1.5px solid var(--line);
+        background: var(--paper);
+        padding: 5px 10px;
+        border-radius: 20px;
+        color: var(--gray);
+        pointer-events: none;
+        animation: bob 6s ease-in-out infinite alternate;
+      }
+      .fchip.c1 {
+        left: -70px;
+        top: 120px;
+        animation-delay: 0.4s;
+      }
+      .fchip.c2 {
+        left: -46px;
+        bottom: 170px;
+        animation-duration: 7.5s;
+      }
+      .fchip.c3 {
+        right: -64px;
+        bottom: 240px;
+        animation-delay: 1.2s;
+        animation-duration: 5s;
+      }
+      @keyframes bob {
+        from {
+          transform: translateY(-7px) rotate(-3deg);
+        }
+        to {
+          transform: translateY(7px) rotate(3deg);
+        }
+      }
+
+      .phone {
+        position: relative;
+        z-index: 1;
+        width: 398px;
+        height: min(832px, calc(100dvh - 120px));
+        min-height: 640px;
+        background: #0b0b0a;
+        border-radius: 56px;
+        padding: 12px;
+        box-shadow:
+          0 44px 90px -24px rgba(20, 20, 12, 0.4),
+          0 0 0 1px #000;
+      }
+      .phone.pulse::after {
+        content: "";
+        position: absolute;
+        inset: -3px;
+        border-radius: 58px;
+        border: 2.5px solid var(--ink);
+        animation: ring 0.9s ease-out forwards;
+        pointer-events: none;
+      }
+      @keyframes ring {
+        from {
+          opacity: 0.9;
+          transform: scale(0.98);
+        }
+        to {
+          opacity: 0;
+          transform: scale(1.06);
+        }
+      }
+      .display {
+        width: 100%;
+        height: 100%;
+        background: var(--paper);
+        border-radius: 44px;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+      .island {
+        position: absolute;
+        top: 11px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 112px;
+        height: 30px;
+        background: #0b0b0a;
+        border-radius: 16px;
+        z-index: 40;
+      }
+      .statusbar {
+        height: 48px;
+        flex: none;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding: 0 26px 5px;
+        font: 700 13px var(--sans);
+      }
+      .sb-r {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .app {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+      }
+      .homebar {
+        position: absolute;
+        bottom: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 118px;
+        height: 4px;
+        background: var(--ink);
+        border-radius: 3px;
+        z-index: 45;
+        opacity: 0.85;
+      }
+
+      /* ============ 屏幕通用 ============ */
+      .screen {
+        position: absolute;
+        inset: 0;
+        display: none;
+        flex-direction: column;
+        background: var(--paper);
+      }
+      .screen.active {
+        display: flex;
+        animation: inR 0.38s cubic-bezier(0.22, 0.9, 0.26, 1);
+      }
+      .screen.active.back {
+        animation: inL 0.38s cubic-bezier(0.22, 0.9, 0.26, 1);
+      }
+      @keyframes inR {
+        from {
+          transform: translateX(14%);
+          opacity: 0.35;
+        }
+      }
+      @keyframes inL {
+        from {
+          transform: translateX(-14%);
+          opacity: 0.35;
+        }
+      }
+      .nav {
+        height: 48px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        padding: 0 8px;
+        border-bottom: 1px solid var(--soft);
+      }
+      .nav-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        transition:
+          background 0.15s,
+          transform 0.15s;
+      }
+      .nav-btn:hover {
+        background: var(--soft);
+      }
+      .nav-btn:active {
+        transform: scale(0.85);
+      }
+      .nav-btn svg {
+        width: 19px;
+        height: 19px;
+      }
+      .nav-title {
+        flex: 1;
+        text-align: center;
+        font-weight: 800;
+        font-size: 14px;
+        letter-spacing: 0.06em;
+      }
+      .nav-ph {
+        width: 36px;
+      }
+      .scroll {
+        flex: 1;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+      }
+      .scroll::-webkit-scrollbar {
+        width: 0;
+      }
+      .btn-ink {
+        background: var(--ink);
+        color: var(--paper);
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        border-radius: 18px;
+        padding: 13px 24px;
+        transition:
+          transform 0.15s,
+          box-shadow 0.2s;
+      }
+      .btn-ink:hover {
+        box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.55);
+      }
+      .btn-ink:active {
+        transform: scale(0.94);
+      }
+      .btn-ink:disabled {
+        background: #cfcdc5;
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+      .btn-ghost {
+        border: 1.5px solid var(--ink);
+        border-radius: 18px;
+        padding: 12px 22px;
+        font-weight: 700;
+        transition: all 0.15s;
+      }
+      .btn-ghost:hover {
+        background: var(--ink);
+        color: var(--paper);
+      }
+
+      /* ============ 点单页 ============ */
+      .menu-head {
+        flex: none;
+        padding: 12px 16px 10px;
+      }
+      .store-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .store-name {
+        font-family: var(--serif);
+        font-weight: 900;
+        font-size: 17px;
+        letter-spacing: 0.03em;
+      }
+      .store-sub {
+        font: 500 9.5px var(--mono);
+        color: var(--faint);
+        letter-spacing: 0.08em;
+        margin-top: 3px;
+      }
+      .store-badge {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+      }
+      .b-pill {
+        font: 700 9.5px var(--mono);
+        border: 1.5px solid var(--ink);
+        border-radius: 20px;
+        padding: 3px 9px;
+        letter-spacing: 0.1em;
+      }
+      .b-soft {
+        font: 600 9px var(--mono);
+        color: var(--gray);
+        letter-spacing: 0.08em;
+      }
+      .promo {
+        margin-top: 10px;
+        background: var(--ink);
+        color: var(--paper);
+        border-radius: 9px;
+        padding: 8px 11px;
+        font: 600 10.5px var(--mono);
+        letter-spacing: 0.05em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .promo .blink {
+        animation: blink 1s steps(2) infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+      .menu-body {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+      }
+      .rail {
+        width: 84px;
+        flex: none;
+        background: #f4f3ee;
+        overflow-y: auto;
+        padding: 6px 0 120px;
+      }
+      .rail::-webkit-scrollbar {
+        width: 0;
+      }
+      .rail-item {
+        position: relative;
+        width: 100%;
+        padding: 13px 6px;
+        font-size: 12px;
+        line-height: 1.35;
+        color: var(--gray);
+        text-align: center;
+        transition: all 0.15s;
+      }
+      .rail-item small {
+        display: block;
+        font: 600 8px var(--mono);
+        letter-spacing: 0.12em;
+        color: var(--faint);
+        margin-top: 2px;
+      }
+      .rail-item:hover {
+        color: var(--ink);
+      }
+      .rail-item.active {
+        background: var(--paper);
+        color: var(--ink);
+        font-weight: 800;
+      }
+      .rail-item.active::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 22%;
+        bottom: 22%;
+        width: 3px;
+        background: var(--ink);
+        border-radius: 0 3px 3px 0;
+      }
+      .list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 4px 12px 160px;
+        scroll-behavior: smooth;
+      }
+      .list::-webkit-scrollbar {
+        width: 0;
+      }
+      .sec {
+        padding-top: 10px;
+      }
+      .sec-title {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        padding: 4px 6px 6px;
+      }
+      .sec-title b {
+        font-family: var(--serif);
+        font-size: 15.5px;
+        font-weight: 900;
+      }
+      .sec-title span {
+        font: 600 8.5px var(--mono);
+        letter-spacing: 0.22em;
+        color: var(--faint);
+      }
+      .m-card {
+        display: flex;
+        gap: 11px;
+        padding: 14px 8px;
+        border-bottom: 1px dashed var(--line);
+        transition:
+          background 0.18s,
+          transform 0.18s;
+        cursor: pointer;
+      }
+      .m-card:hover {
+        background: #faf9f4;
+        transform: translateX(2px);
+      }
+      .m-logo {
+        flex: none;
+        width: 47px;
+        height: 47px;
+        border: 1.5px solid var(--ink);
+        border-radius: 13px;
+        display: grid;
+        place-items: center;
+        background: var(--paper);
+        transition: all 0.2s;
+      }
+      .m-card:hover .m-logo {
+        background: var(--ink);
+        color: var(--paper);
+      }
+      .m-logo svg {
+        width: 26px;
+        height: 26px;
+      }
+      .m-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .m-name {
+        font-weight: 800;
+        font-size: 14px;
+      }
+      .m-en {
+        font: 600 9px var(--mono);
+        color: var(--faint);
+        letter-spacing: 0.06em;
+        margin: 2px 0 4px;
+      }
+      .m-desc {
+        font-size: 11px;
+        color: var(--gray);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .m-tags {
+        display: flex;
+        gap: 5px;
+        margin-top: 6px;
+        flex-wrap: wrap;
+      }
+      .m-tag {
+        font: 600 8.5px var(--mono);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 2px 5px;
+        color: var(--gray);
+        letter-spacing: 0.04em;
+      }
+      .m-buy {
+        flex: none;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: space-between;
+      }
+      .m-sales {
+        font: 500 9px var(--mono);
+        color: var(--faint);
+      }
+      .m-price {
+        font-weight: 900;
+        font-size: 16.5px;
+        font-family: var(--serif);
+      }
+      .m-price i {
+        font-style: normal;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .m-price small {
+        display: block;
+        font: 500 8.5px var(--mono);
+        color: var(--faint);
+        text-align: right;
+        margin-top: 1px;
+      }
+      .m-add {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--ink);
+        color: var(--paper);
+        font-size: 17px;
+        line-height: 1;
+        display: grid;
+        place-items: center;
+        transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
+      }
+      .m-add:hover {
+        transform: rotate(90deg) scale(1.12);
+      }
+      .m-add:active {
+        transform: scale(0.8);
+      }
+
+      /* 购物袋 */
+      .cartbar {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        bottom: 66px;
+        z-index: 20;
+        background: var(--ink);
+        color: var(--paper);
+        border-radius: 24px;
+        padding: 8px 8px 8px 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.5);
+        transition: transform 0.2s;
+      }
+      .cartbar.bump {
+        animation: bump 0.4s;
+      }
+      @keyframes bump {
+        30% {
+          transform: scale(1.045);
+        }
+      }
+      .cart-ico {
+        position: relative;
+        flex: none;
+      }
+      .cart-ico svg {
+        width: 23px;
+        height: 23px;
+        display: block;
+      }
+      .cart-badge {
+        position: absolute;
+        top: -6px;
+        right: -9px;
+        min-width: 17px;
+        height: 17px;
+        border-radius: 9px;
+        background: var(--paper);
+        color: var(--ink);
+        font: 800 10px/17px var(--mono);
+        text-align: center;
+        padding: 0 4px;
+        transform: scale(0);
+        transition: transform 0.25s cubic-bezier(0.3, 1.8, 0.5, 1);
+      }
+      .cart-badge.on {
+        transform: scale(1);
+      }
+      .cart-txt {
+        flex: 1;
+        min-width: 0;
+      }
+      .cart-txt b {
+        font-size: 14.5px;
+        font-family: var(--serif);
+      }
+      .cart-txt span {
+        display: block;
+        font: 500 8.5px var(--mono);
+        color: #9d9b92;
+        letter-spacing: 0.05em;
+        margin-top: 1px;
+      }
+      .cart-go {
+        flex: none;
+        background: var(--paper);
+        color: var(--ink);
+        font-weight: 800;
+        font-size: 13px;
+        border-radius: 17px;
+        padding: 10px 19px;
+        transition: all 0.15s;
+      }
+      .cart-go:active {
+        transform: scale(0.92);
+      }
+      .cart-go.off {
+        background: #3a3a36;
+        color: #8a887f;
+        pointer-events: none;
+      }
+
+      /* Tab 栏 */
+      .tabbar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 60px;
+        background: var(--paper);
+        border-top: 1px solid #e6e4dc;
+        display: flex;
+        z-index: 25;
+        padding-bottom: 6px;
+      }
+      .tabbar.hide {
+        display: none;
+      }
+      .tab {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--faint);
+        transition: color 0.15s;
+      }
+      .tab svg {
+        width: 21px;
+        height: 21px;
+      }
+      .tab .crab-ico {
+        width: 20px;
+        height: 11px;
+        display: block;
+      }
+      .tab.active {
+        color: var(--ink);
+        font-weight: 800;
+      }
+      .tab:active {
+        transform: scale(0.9);
+      }
+
+      /* ============ 详情页 ============ */
+      .cup-stage {
+        flex: none;
+        height: 238px;
+        position: relative;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 42%, #fbfaf6 0 46%, transparent 47%),
+          radial-gradient(#e4e2d9 1px, transparent 1px);
+        background-size:
+          auto,
+          16px 16px;
+        border-bottom: 1px solid var(--soft);
+      }
+      .cup {
+        position: relative;
+        width: 148px;
+        height: 172px;
+        margin-top: 34px;
+      }
+      .straw {
+        position: absolute;
+        width: 13px;
+        height: 84px;
+        background: var(--ink);
+        border-radius: 7px;
+        top: -62px;
+        left: 56%;
+        transform: rotate(9deg);
+      }
+      .straw::after {
+        content: "";
+        position: absolute;
+        left: 4px;
+        top: 5px;
+        bottom: 5px;
+        width: 2.5px;
+        background: var(--paper);
+        border-radius: 2px;
+        opacity: 0.7;
+      }
+      .lid-rim {
+        position: absolute;
+        top: -16px;
+        left: -15px;
+        right: -15px;
+        height: 9px;
+        background: var(--ink);
+        border-radius: 6px;
+      }
+      .lid {
+        position: absolute;
+        top: -9px;
+        left: -8px;
+        right: -8px;
+        height: 20px;
+        background: var(--ink);
+        border-radius: 9px 9px 4px 4px;
+      }
+      .cup-body {
+        position: absolute;
+        inset: 11px 0 0;
+        border: 2.5px solid var(--ink);
+        border-radius: 7px 7px 26px 26px;
+        background: var(--paper);
+        overflow: hidden;
+      }
+      .tea {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 63%;
+        background: #e9e7dd;
+        border-top: 2.5px solid #c9c7bd;
+      }
+      .boba {
+        position: absolute;
+        bottom: 6px;
+        background: var(--ink);
+        border-radius: 50%;
+        animation: boba 3.2s ease-in-out infinite alternate;
+      }
+      @keyframes boba {
+        from {
+          transform: translateY(0);
+        }
+        to {
+          transform: translateY(-9px);
+        }
+      }
+      .cup-label {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 26%;
+        text-align: center;
+        z-index: 2;
+      }
+      .cup-label svg {
+        width: 36px;
+        height: 36px;
+      }
+      .cup-label b {
+        display: block;
+        font-family: var(--serif);
+        font-size: 12.5px;
+        font-weight: 900;
+        margin-top: 4px;
+        letter-spacing: 0.05em;
+      }
+      .steam {
+        position: absolute;
+        top: -58px;
+        left: 50%;
+        display: flex;
+        gap: 9px;
+      }
+      .steam i {
+        width: 3px;
+        height: 26px;
+        border-radius: 2px;
+        background: #c6c4ba;
+        animation: steam 2.4s ease-in-out infinite;
+      }
+      .steam i:nth-child(2) {
+        animation-delay: 0.7s;
+        height: 20px;
+      }
+      .steam i:nth-child(3) {
+        animation-delay: 1.3s;
+      }
+      @keyframes steam {
+        0% {
+          opacity: 0;
+          transform: translateY(8px) scaleY(0.6);
+        }
+        45% {
+          opacity: 0.9;
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-14px) scaleY(1.15);
+        }
+      }
+      .ftag {
+        position: absolute;
+        font: 700 9px var(--mono);
+        letter-spacing: 0.08em;
+        border: 1.5px solid var(--ink);
+        background: var(--paper);
+        padding: 4px 8px;
+        border-radius: 14px;
+        animation: bob 5s ease-in-out infinite alternate;
+      }
+      .ftag.t1 {
+        left: 22px;
+        top: 34px;
+      }
+      .ftag.t2 {
+        right: 20px;
+        top: 74px;
+        animation-delay: 0.8s;
+      }
+      .ftag.t3 {
+        left: 30px;
+        bottom: 26px;
+        animation-delay: 1.5s;
+      }
+      .d-head {
+        padding: 15px 18px 4px;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .d-cn {
+        font-family: var(--serif);
+        font-weight: 900;
+        font-size: 21px;
+        letter-spacing: 0.02em;
+      }
+      .d-en {
+        font: 600 10px var(--mono);
+        color: var(--faint);
+        letter-spacing: 0.1em;
+        margin-top: 4px;
+      }
+      .d-vendor {
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        border: 1.5px solid var(--ink);
+        border-radius: 16px;
+        padding: 5px 10px;
+      }
+      .d-vendor svg {
+        width: 15px;
+        height: 15px;
+      }
+      .d-vendor span {
+        font: 700 9.5px var(--mono);
+        letter-spacing: 0.08em;
+      }
+      .d-desc {
+        padding: 8px 18px 2px;
+        font-size: 12px;
+        line-height: 1.75;
+        color: var(--gray);
+      }
+      .d-price {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding: 10px 18px 14px;
+      }
+      .d-price b {
+        font-family: var(--serif);
+        font-weight: 900;
+        font-size: 27px;
+      }
+      .d-price b i {
+        font-style: normal;
+        font-size: 14px;
+      }
+      .d-price b em {
+        font-style: normal;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--gray);
+        margin-left: 3px;
+      }
+      .d-rate {
+        font: 600 9.5px var(--mono);
+        color: var(--gray);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 5px 8px;
+        letter-spacing: 0.03em;
+      }
+      .spec {
+        padding: 14px 18px 16px;
+        border-top: 1px solid var(--soft);
+      }
+      .spec-head {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+      }
+      .spec-head b {
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .spec-head span {
+        font: 600 8.5px var(--mono);
+        letter-spacing: 0.18em;
+        color: var(--faint);
+      }
+      .spec-head em {
+        margin-left: auto;
+        font: 600 9.5px var(--mono);
+        font-style: normal;
+        color: var(--gray);
+      }
+      .opts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 11px;
+      }
+      .opts.four {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .opt {
+        position: relative;
+        border: 1.5px solid var(--line);
+        border-radius: 12px;
+        padding: 10px 12px;
+        text-align: left;
+        transition: all 0.16s;
+        background: var(--paper);
+      }
+      .opt:hover {
+        border-color: var(--ink);
+      }
+      .opt b {
+        display: block;
+        font-size: 13px;
+        font-weight: 800;
+      }
+      .opt span {
+        display: block;
+        font: 600 9px var(--mono);
+        color: var(--gray);
+        margin-top: 3px;
+        letter-spacing: 0.03em;
+      }
+      .opt.sel {
+        background: var(--ink);
+        color: var(--paper);
+        border-color: var(--ink);
+      }
+      .opt.sel span {
+        color: #b6b4ab;
+      }
+      .opt.dis {
+        opacity: 0.42;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          45deg,
+          transparent 0 6px,
+          #ecebe3 6px 7px
+        );
+      }
+      .opt .sold {
+        position: absolute;
+        top: -8px;
+        right: 8px;
+        font: 800 8px var(--mono);
+        background: var(--paper);
+        border: 1.5px solid var(--ink);
+        border-radius: 8px;
+        padding: 1.5px 6px;
+        letter-spacing: 0.15em;
+      }
+      .t-row {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 11px 2px;
+        border-bottom: 1px dashed #e6e4db;
+        transition: background 0.15s;
+        width: 100%;
+        text-align: left;
+      }
+      .t-row:last-child {
+        border-bottom: none;
+      }
+      .t-row:active {
+        background: #faf9f4;
+      }
+      .t-ico {
+        flex: none;
+        width: 27px;
+        height: 27px;
+        border-radius: 8px;
+        background: var(--paper);
+        border: 1.5px solid var(--ink);
+        display: grid;
+        place-items: center;
+        font-family: var(--serif);
+        font-weight: 900;
+        font-size: 12px;
+        transition: all 0.18s;
+      }
+      .t-row.on .t-ico {
+        background: var(--ink);
+        color: var(--paper);
+      }
+      .t-name {
+        flex: 1;
+      }
+      .t-name b {
+        font-size: 13px;
+        font-weight: 700;
+        display: block;
+      }
+      .t-name span {
+        font: 600 8.5px var(--mono);
+        color: var(--faint);
+        letter-spacing: 0.1em;
+      }
+      .t-fee {
+        font: 700 10.5px var(--mono);
+        color: var(--gray);
+      }
+      .t-chk {
+        flex: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 1.5px solid var(--line);
+        display: grid;
+        place-items: center;
+        transition: all 0.18s;
+      }
+      .t-chk svg {
+        width: 11px;
+        height: 11px;
+        stroke: var(--paper);
+        opacity: 0;
+        transform: scale(0.4);
+        transition: all 0.18s;
+      }
+      .t-row.on .t-chk {
+        background: var(--ink);
+        border-color: var(--ink);
+      }
+      .t-row.on .t-chk svg {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .a-row {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 12px 2px;
+        border-bottom: 1px dashed #e6e4db;
+      }
+      .a-row:last-child {
+        border-bottom: none;
+      }
+      .step {
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+      }
+      .step button {
+        width: 27px;
+        height: 27px;
+        border: 1.5px solid var(--ink);
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        display: grid;
+        place-items: center;
+        transition: all 0.13s;
+        line-height: 1;
+      }
+      .step button:hover {
+        background: var(--ink);
+        color: var(--paper);
+      }
+      .step button:active {
+        transform: scale(0.82);
+      }
+      .step button:disabled {
+        border-color: var(--line);
+        color: var(--line);
+        pointer-events: none;
+      }
+      .step output {
+        width: 30px;
+        text-align: center;
+        font: 800 13px var(--mono);
+      }
+      .qty-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 18px;
+        border-top: 1px solid var(--soft);
+      }
+      .qty-row b {
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .qty-row span {
+        font: 600 8.5px var(--mono);
+        color: var(--faint);
+        letter-spacing: 0.15em;
+        margin-left: 8px;
+      }
+      .detail-bar {
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px 14px;
+        border-top: 1px solid #e8e6de;
+        background: var(--paper);
+      }
+      .db-price {
+        flex: 1;
+        min-width: 0;
+      }
+      .db-price span {
+        font-size: 10px;
+        color: var(--gray);
+      }
+      .db-price b {
+        font-family: var(--serif);
+        font-weight: 900;
+        font-size: 21px;
+        margin-left: 4px;
+      }
+      .db-price small {
+        display: block;
+        font: 500 8.5px var(--mono);
+        color: var(--faint);
+        margin-top: 1px;
+      }
+
+      /* ============ 结算页 ============ */
+      .co-store {
+        margin: 13px 14px 0;
+        background: var(--ink);
+        color: var(--paper);
+        border-radius: 15px;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .co-store b {
+        font-family: var(--serif);
+        font-size: 14.5px;
+        font-weight: 900;
+        letter-spacing: 0.03em;
+      }
+      .co-store div span {
+        display: block;
+        font: 500 9px var(--mono);
+        color: #a5a39a;
+        letter-spacing: 0.06em;
+        margin-top: 4px;
+      }
+      .co-qr {
+        margin-left: auto;
+        flex: none;
+        display: grid;
+        grid-template-columns: repeat(7, 4px);
+        grid-auto-rows: 4px;
+        gap: 1px;
+      }
+      .co-qr i {
+        background: var(--paper);
+      }
+      .co-qr i.o {
+        background: transparent;
+      }
+      .co-items {
+        margin: 12px 14px 0;
+        border: 1.5px solid #e5e3db;
+        border-radius: 15px;
+        overflow: hidden;
+      }
+      .co-item {
+        padding: 12px 14px;
+        border-bottom: 1px dashed #e5e3db;
+      }
+      .co-item:last-child {
+        border-bottom: none;
+      }
+      .co-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: baseline;
+      }
+      .co-top b {
+        font-size: 13.5px;
+        font-weight: 800;
+      }
+      .co-top .q {
+        font: 700 10.5px var(--mono);
+        color: var(--gray);
+      }
+      .co-top .p {
+        font: 800 13px var(--mono);
+      }
+      .co-specs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 7px;
+      }
+      .co-sp {
+        font: 600 9px var(--mono);
+        background: #f2f1ea;
+        border-radius: 5px;
+        padding: 3px 7px;
+        color: #5c5b55;
+        letter-spacing: 0.03em;
+      }
+      .co-note {
+        margin: 12px 14px 0;
+        border: 1.5px dashed #c9c7bd;
+        border-radius: 13px;
+        padding: 11px 13px;
+        width: calc(100% - 28px);
+        background: transparent;
+        outline: none;
+        font-size: 12px;
+      }
+      .co-note::placeholder {
+        color: var(--faint);
+      }
+      .co-note:focus {
+        border-color: var(--ink);
+      }
+      .co-sum {
+        margin: 14px 14px 0;
+        padding: 4px 2px;
+      }
+      .sum-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        font-size: 12px;
+        color: var(--gray);
+      }
+      .sum-row output {
+        font: 700 11.5px var(--mono);
+        color: var(--ink);
+      }
+      .sum-row.sub {
+        padding-left: 14px;
+        font-size: 11px;
+      }
+      .sum-row.sub output {
+        font-weight: 600;
+        color: var(--gray);
+      }
+      .sum-row.disc output {
+        color: var(--ink);
+      }
+      .sum-div {
+        border-top: 1px dashed var(--line);
+        margin: 7px 0;
+      }
+      .sum-row.total {
+        align-items: baseline;
+      }
+      .sum-row.total b {
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--ink);
+      }
+      .sum-row.total output {
+        font-family: var(--serif);
+        font-weight: 900;
+        font-size: 22px;
+      }
+      .co-agree {
+        text-align: center;
+        font: 500 9px var(--mono);
+        color: var(--faint);
+        margin: 12px 0 4px;
+        letter-spacing: 0.05em;
+      }
+      .co-bar {
+        flex: none;
+        padding: 10px 14px 14px;
+        border-top: 1px solid #e8e6de;
+        background: var(--paper);
+      }
+      .co-bar .btn-ink {
+        width: 100%;
+        border-radius: 16px;
+        padding: 15px;
+        font-size: 14.5px;
+      }
+
+      /* ============ 小票页 ============ */
+      .receipt-scroll {
+        background: #efede5;
+      }
+      .printer {
+        flex: none;
+        height: 30px;
+        background: var(--ink);
+        border-radius: 0 0 12px 12px;
+        position: relative;
+        margin: 0 16px;
+      }
+      .printer::after {
+        content: "";
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 6px;
+        height: 3px;
+        background: #3d3d38;
+        border-radius: 2px;
+      }
+      .printer b {
+        position: absolute;
+        right: 14px;
+        top: 7px;
+        font: 700 7.5px var(--mono);
+        color: #7c7a71;
+        letter-spacing: 0.2em;
+      }
+      .slot {
+        overflow: hidden;
+        margin: 0 26px;
+      }
+      .paper {
+        position: relative;
+        background: #fffef8;
+        padding: 20px 17px 30px;
+        margin-top: -2px;
+        box-shadow: 0 16px 34px -14px rgba(20, 20, 10, 0.35);
+        font: 500 10.5px/1.65 var(--mono);
+        color: #1c1c19;
+        animation: paperOut 0.9s cubic-bezier(0.2, 0.85, 0.3, 1);
+      }
+      @keyframes paperOut {
+        from {
+          transform: translateY(-55%);
+          opacity: 0;
+        }
+      }
+      .paper::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -11px;
+        height: 12px;
+        background:
+          linear-gradient(-45deg, #fffef8 6px, transparent 0),
+          linear-gradient(45deg, #fffef8 6px, transparent 0);
+        background-size: 13px 12px;
+        background-repeat: repeat-x;
+      }
+      .r-brand {
+        text-align: center;
+        font-family: var(--serif);
+        font-weight: 900;
+        font-size: 19px;
+        letter-spacing: 0.3em;
+        text-indent: 0.3em;
+      }
+      .r-sub {
+        text-align: center;
+        font-size: 8.5px;
+        letter-spacing: 0.28em;
+        color: var(--gray);
+        margin: 3px 0 10px;
+      }
+      .r-dash {
+        border-top: 1.5px dashed #b9b7ad;
+        margin: 9px 0;
+      }
+      .r-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+      }
+      .r-row span:first-child {
+        color: var(--gray);
+      }
+      .r-code {
+        text-align: center;
+        margin: 12px 0 4px;
+      }
+      .r-code span {
+        font-size: 9px;
+        letter-spacing: 0.3em;
+        color: var(--gray);
+      }
+      .r-code b {
+        display: block;
+        font-family: var(--serif);
+        font-weight: 900;
+        font-size: 36px;
+        letter-spacing: 0.14em;
+        margin-top: 2px;
+      }
+      .r-item {
+        margin: 9px 0;
+      }
+      .r-item .h {
+        display: flex;
+        justify-content: space-between;
+        font-weight: 800;
+        font-size: 11.5px;
+      }
+      .r-item .s {
+        font-size: 9.5px;
+        color: var(--gray);
+        padding-left: 10px;
+      }
+      .r-item .t {
+        font-size: 9px;
+        color: var(--gray);
+        padding-left: 10px;
+      }
+      .r-tok {
+        border: 1.5px dashed #b9b7ad;
+        border-radius: 4px;
+        padding: 7px 9px;
+        margin: 10px 0;
+        font-size: 9px;
+        color: #4c4b45;
+      }
+      .r-tok div {
+        display: flex;
+        justify-content: space-between;
+        padding: 1.5px 0;
+      }
+      .r-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+      }
+      .r-total b {
+        font-size: 12px;
+      }
+      .r-total output {
+        font-family: var(--serif);
+        font-weight: 900;
+        font-size: 20px;
+      }
+      .r-bar {
+        height: 38px;
+        width: 78%;
+        margin: 14px auto 5px;
+        background: repeating-linear-gradient(
+          90deg,
+          #1c1c19 0 2px,
+          transparent 2px 4px,
+          #1c1c19 4px 7px,
+          transparent 7px 9px,
+          #1c1c19 9px 10px,
+          transparent 10px 13px
+        );
+      }
+      .r-barno {
+        text-align: center;
+        font-size: 8.5px;
+        letter-spacing: 0.42em;
+        color: var(--gray);
+      }
+      .r-foot {
+        text-align: center;
+        font-size: 8.5px;
+        color: var(--gray);
+        margin-top: 12px;
+        line-height: 1.9;
+      }
+      .stamp {
+        position: absolute;
+        right: 16px;
+        top: 172px;
+        width: 94px;
+        height: 94px;
+        border: 2.5px solid var(--ink);
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1px;
+        transform: rotate(-14deg) scale(2);
+        opacity: 0;
+        animation: stampIn 0.4s 0.75s cubic-bezier(0.2, 1.3, 0.4, 1) forwards;
+      }
+      .stamp::before {
+        content: "";
+        position: absolute;
+        inset: 4px;
+        border: 1px solid var(--ink);
+        border-radius: 50%;
+      }
+      .stamp svg {
+        width: 42px;
+        height: 24px;
+      }
+      .stamp b {
+        font-family: var(--serif);
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.2em;
+      }
+      .stamp span {
+        font: 700 6px var(--mono);
+        letter-spacing: 0.3em;
+      }
+      @keyframes stampIn {
+        60% {
+          opacity: 1;
+          transform: rotate(-14deg) scale(0.9);
+        }
+        to {
+          opacity: 0.92;
+          transform: rotate(-14deg) scale(1);
+        }
+      }
+      .r-actions {
+        display: flex;
+        gap: 10px;
+        margin: 26px 0 8px;
+      }
+      .r-actions .btn-ink,
+      .r-actions .btn-ghost {
+        flex: 1;
+        text-align: center;
+        border-radius: 15px;
+        padding: 13px;
+        font-size: 13px;
+      }
+
+      /* ============ 订单 / 我的 ============ */
+      .pg-head {
+        padding: 18px 16px 8px;
+      }
+      .pg-head b {
+        font-family: var(--serif);
+        font-weight: 900;
+        font-size: 21px;
+      }
+      .pg-head span {
+        display: block;
+        font: 600 8.5px var(--mono);
+        letter-spacing: 0.26em;
+        color: var(--faint);
+        margin-top: 4px;
+      }
+      .o-card {
+        display: block;
+        width: calc(100% - 28px);
+        margin: 0 14px 11px;
+        border: 1.5px solid #e2e0d7;
+        border-radius: 15px;
+        padding: 13px 15px;
+        text-align: left;
+        transition: all 0.18s;
+        background: var(--paper);
+      }
+      .o-card:hover {
+        border-color: var(--ink);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.4);
+      }
+      .o-card:active {
+        transform: scale(0.98);
+      }
+      .o-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .o-top b {
+        font-family: var(--serif);
+        font-weight: 900;
+        font-size: 21px;
+        letter-spacing: 0.06em;
+      }
+      .o-st {
+        font: 800 8.5px var(--mono);
+        border: 1.5px solid var(--ink);
+        border-radius: 10px;
+        padding: 3px 8px;
+        letter-spacing: 0.15em;
+      }
+      .o-name {
+        font-weight: 800;
+        font-size: 13px;
+        margin-top: 7px;
+      }
+      .o-specs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 6px;
+      }
+      .o-bot {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-top: 9px;
+        padding-top: 8px;
+        border-top: 1px dashed var(--line);
+      }
+      .o-bot span {
+        font: 500 9px var(--mono);
+        color: var(--faint);
+      }
+      .o-bot b {
+        font-family: var(--serif);
+        font-size: 15px;
+        font-weight: 900;
+      }
+      .empty {
+        text-align: center;
+        padding: 70px 30px;
+        color: var(--faint);
+      }
+      .empty svg {
+        width: 84px;
+        height: 47px;
+        color: #cfcdc4;
+        margin-bottom: 16px;
+      }
+      .empty b {
+        display: block;
+        font-family: var(--serif);
+        font-size: 15px;
+        color: var(--gray);
+        margin-bottom: 6px;
+      }
+      .empty span {
+        font: 500 10px var(--mono);
+        letter-spacing: 0.1em;
+      }
+      .member {
+        position: relative;
+        overflow: hidden;
+        margin: 14px;
+        background: var(--ink);
+        color: var(--paper);
+        border-radius: 19px;
+        padding: 17px 18px;
+      }
+      .member .wm {
+        position: absolute;
+        right: -14px;
+        bottom: -16px;
+        width: 120px;
+        height: 68px;
+        color: var(--paper);
+        opacity: 0.14;
+      }
+      .member b {
+        font-family: var(--serif);
+        font-weight: 900;
+        font-size: 16.5px;
+        letter-spacing: 0.06em;
+      }
+      .member .lvl {
+        font: 600 8px var(--mono);
+        letter-spacing: 0.3em;
+        color: #a5a39a;
+        margin: 3px 0 12px;
+      }
+      .member .who {
+        font: 600 10px var(--mono);
+        color: #c9c7be;
+      }
+      .member .bal {
+        font: 500 8.5px var(--mono);
+        letter-spacing: 0.2em;
+        color: #a5a39a;
+        margin-top: 13px;
+      }
+      .member .bal b {
+        display: block;
+        font-family: var(--serif);
+        font-size: 27px;
+        letter-spacing: 0.02em;
+        margin-top: 2px;
+      }
+      .m-prog {
+        height: 4px;
+        background: #3a3a35;
+        border-radius: 2px;
+        margin-top: 11px;
+        overflow: hidden;
+      }
+      .m-prog i {
+        display: block;
+        height: 100%;
+        width: 68%;
+        background: var(--paper);
+        border-radius: 2px;
+      }
+      .m-cap {
+        font: 500 8px var(--mono);
+        color: #8f8d84;
+        margin-top: 5px;
+        letter-spacing: 0.06em;
+      }
+      .pf-sec {
+        margin: 0 14px 12px;
+        border: 1.5px solid #e2e0d7;
+        border-radius: 15px;
+        overflow: hidden;
+      }
+      .pf-row {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        width: 100%;
+        text-align: left;
+        padding: 13px 15px;
+        border-bottom: 1px dashed #e6e4db;
+        transition: background 0.15s;
+      }
+      .pf-row:last-child {
+        border-bottom: none;
+      }
+      .pf-row:hover {
+        background: #faf9f4;
+      }
+      .pf-row:active {
+        background: #f2f1ea;
+      }
+      .pf-ico {
+        flex: none;
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        background: var(--ink);
+        color: var(--paper);
+        display: grid;
+        place-items: center;
+        font-family: var(--serif);
+        font-weight: 900;
+        font-size: 11px;
+      }
+      .pf-row b {
+        flex: 1;
+        font-size: 12.5px;
+        font-weight: 700;
+      }
+      .pf-row span {
+        font: 600 9px var(--mono);
+        color: var(--faint);
+      }
+      .pf-row svg {
+        width: 14px;
+        height: 14px;
+        color: var(--faint);
+      }
+
+      /* ============ 制作中 / Toast ============ */
+      .brew {
+        position: absolute;
+        inset: 0;
+        z-index: 50;
+        background: var(--ink);
+        color: var(--paper);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+      }
+      .brew.on {
+        display: flex;
+      }
+      .brew-cup {
+        position: relative;
+        width: 74px;
+        height: 84px;
+        border: 3px solid var(--paper);
+        border-radius: 7px 7px 24px 24px;
+        overflow: hidden;
+        animation: shake 0.5s ease-in-out infinite;
+      }
+      @keyframes shake {
+        25% {
+          transform: rotate(-2.5deg);
+        }
+        75% {
+          transform: rotate(2.5deg);
+        }
+      }
+      .brew-tea {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--paper);
+        animation: fillUp 2.3s ease-in-out forwards;
+      }
+      @keyframes fillUp {
+        from {
+          height: 6%;
+        }
+        to {
+          height: 78%;
+        }
+      }
+      .brew-pct {
+        font: 800 26px var(--mono);
+      }
+      .brew-stage {
+        font: 600 10.5px var(--mono);
+        letter-spacing: 0.22em;
+        color: #a5a39a;
+      }
+      .brew-bar {
+        width: 64%;
+        height: 3px;
+        background: #3a3a35;
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .brew-bar i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: var(--paper);
+        transition: width 0.12s linear;
+      }
+      .brew small {
+        font: 500 8px var(--mono);
+        letter-spacing: 0.3em;
+        color: #6f6d64;
+      }
+      .toast {
+        position: absolute;
+        left: 50%;
+        bottom: 140px;
+        transform: translate(-50%, 8px);
+        z-index: 60;
+        background: var(--ink);
+        color: var(--paper);
+        padding: 9px 17px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.28s;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      /* ============ 响应式 ============ */
+      @media (max-width: 1020px) {
+        .stage {
+          grid-template-columns: 1fr;
+          gap: 40px;
+          justify-items: center;
+        }
+        .panel {
+          max-width: 640px;
+        }
+      }
+      @media (max-width: 560px) {
+        .panel,
+        .bg-tea,
+        .fchip {
+          display: none;
+        }
+        .stage {
+          padding: 14px 0 0;
+          gap: 0;
+        }
+        .phone {
+          width: 100%;
+          height: calc(100dvh - 30px);
+          min-height: 0;
+          border-radius: 0;
+          padding: 0;
+          box-shadow: none;
+        }
+        .display {
+          border-radius: 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ============ SVG 符号库（单色 logo / 图标） ============ -->
+    <svg style="display: none" xmlns="http://www.w3.org/2000/svg">
+      <symbol id="lg-anthropic" viewBox="0 0 24 24">
+        <g
+          stroke="currentColor"
+          stroke-width="2.6"
+          stroke-linecap="round"
+          fill="none"
+        >
+          <path d="M12 3.5v17M4.6 7.75l14.8 8.5M19.4 7.75 4.6 16.25" />
+        </g>
+      </symbol>
+      <symbol id="lg-openai" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.1"
+          stroke-linecap="round"
+        >
+          <path d="M12 2.8a4.7 4.7 0 0 1 0 9.4" />
+          <path d="M12 2.8a4.7 4.7 0 0 1 0 9.4" transform="rotate(60 12 12)" />
+          <path d="M12 2.8a4.7 4.7 0 0 1 0 9.4" transform="rotate(120 12 12)" />
+          <path d="M12 2.8a4.7 4.7 0 0 1 0 9.4" transform="rotate(180 12 12)" />
+          <path d="M12 2.8a4.7 4.7 0 0 1 0 9.4" transform="rotate(240 12 12)" />
+          <path d="M12 2.8a4.7 4.7 0 0 1 0 9.4" transform="rotate(300 12 12)" />
+        </g>
+      </symbol>
+      <symbol id="lg-google" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.7"
+          stroke-linecap="round"
+        >
+          <path d="M19.6 8.8A8.1 8.1 0 1 0 20.1 12" />
+          <path d="M12 12h8" />
+        </g>
+      </symbol>
+      <symbol id="lg-qwen" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.3"
+          stroke-linejoin="round"
+        >
+          <rect
+            x="6.2"
+            y="6.2"
+            width="11.6"
+            height="11.6"
+            rx="3.2"
+            transform="rotate(45 12 12)"
+          />
+          <path d="M15.5 15.5 20 20" stroke-linecap="round" />
+        </g>
+        <circle cx="12" cy="12" r="1.7" fill="currentColor" />
+      </symbol>
+      <symbol id="lg-deepseek" viewBox="0 0 24 24">
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M2.6 13.4C3.2 8.9 7 5.6 11.5 5.6c3.9 0 7.4 2.3 9 5.6.5 1.1.2 2.4-.9 3-2.8 1.7-6.4 2.2-9.6 1.5-.6 1.4-1.9 2.5-3.6 2.8-.5.1-.9-.4-.6-.8.6-.9.8-1.7.7-2.5-1.9-.4-3.4-1.1-4.5-1.8zm4.3-4.3a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"
+        />
+        <path
+          fill="currentColor"
+          d="M19.8 8.6c.9-.5 1.5-1.3 1.7-2.3.4 1.2.1 2.5-.8 3.4 1.2.1 2.2.8 2.7 1.8-1.3-.4-2.7-.2-3.8.5z"
+        />
+      </symbol>
+      <symbol id="lg-meta" viewBox="0 0 24 24">
+        <path
+          d="M12 12c-1.7-2.5-3.1-3.9-4.9-3.9a3.9 3.9 0 0 0 0 7.8c1.8 0 3.2-1.4 4.9-3.9zm0 0c1.7 2.5 3.1 3.9 4.9 3.9a3.9 3.9 0 0 0 0-7.8c-1.8 0-3.2 1.4-4.9 3.9z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+        />
+      </symbol>
+      <symbol id="ic-back" viewBox="0 0 24 24">
+        <path
+          d="M14.5 5 8 12l6.5 7"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="ic-bag" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linejoin="round"
+        >
+          <path d="M4.8 8h14.4l-1.3 12.2H6.1L4.8 8z" />
+          <path d="M8.5 8V6.6a3.5 3.5 0 0 1 7 0V8" />
+        </g>
+      </symbol>
+      <symbol id="ic-cup" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        >
+          <path d="M6.2 4h11.6l-1.6 16.5H7.8L6.2 4z" />
+          <path d="M5.4 7.5h13.2" />
+          <path d="M12 4V2" />
+        </g>
+      </symbol>
+      <symbol id="ic-receipt" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        >
+          <path d="M6 3h12v18l-2-1.5L14 21l-2-1.5L10 21l-2-1.5L6 21V3z" />
+          <path d="M9 8h6M9 12h6" />
+        </g>
+      </symbol>
+      <symbol id="ic-chev" viewBox="0 0 24 24">
+        <path
+          d="m9 5 7 7-7 7"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="ic-check" viewBox="0 0 24 24">
+        <path
+          d="M5 12.5l4.5 4.5L19 7"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="ic-share" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.1"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 3v13M12 3 8 7M12 3l4 4M5 12v8h14v-8" />
+        </g>
+      </symbol>
+    </svg>
+
+    <!-- ============ 行情跑马灯 ============ -->
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-track" id="tickerTrack"></div>
+    </div>
+
+    <div class="stage">
+      <!-- ============ 左侧：茶单介绍 ============ -->
+      <aside class="panel">
+        <p class="overline">MODELTEA MINI-APP PROTOTYPE · FRI 07.31.2026</p>
+        <h1 class="brand">模<span class="hollow">室</span></h1>
+        <p class="wordmark">
+          M O D E L T E A<small>把大模型，做成一杯现萃茶饮</small>
+        </p>
+        <p class="lede">
+          像点一杯芝士茗茶一样点一杯 LLM ——
+          <b>杯型</b>是上下文窗口，<b>加料</b>是能力开关，小票上盖着像素螃蟹
+          <b>Clawd</b> 的接单章。全程黑白，价格透明：按每百万 token 计价。
+        </p>
+        <div class="map-table">
+          <div class="map-row">
+            <span class="map-cn">杯型</span><span class="map-arrow">--&gt;</span
+            ><span class="map-en">上下文窗口 256K / 1M</span>
+          </div>
+          <div class="map-row">
+            <span class="map-cn">加料</span><span class="map-arrow">--&gt;</span
+            ><span class="map-en">联网搜索 · 视觉 · 深度思考</span>
+          </div>
+          <div class="map-row">
+            <span class="map-cn">加购</span><span class="map-arrow">--&gt;</span
+            ><span class="map-en">图片 / 文档附件</span>
+          </div>
+          <div class="map-row">
+            <span class="map-cn">甜度</span><span class="map-arrow">--&gt;</span
+            ><span class="map-en">Temperature 0.0 – 1.0</span>
+          </div>
+          <div class="map-row">
+            <span class="map-cn">价格牌</span
+            ><span class="map-arrow">--&gt;</span
+            ><span class="map-en">USD / 1M TOKENS（入·出）</span>
+          </div>
+        </div>
+        <p class="roster-title">TODAY'S MENU · 点击任意一杯，手机里直接开点</p>
+        <div class="roster" id="roster"></div>
+        <p class="footnote">
+          SINGLE FILE · NO DEPS · VANILLA JS · B/W ONLY — index.html
+        </p>
+      </aside>
+
+      <!-- ============ 右侧：手机 ============ -->
+      <div class="phone-wrap">
+        <div class="bg-tea" aria-hidden="true">茶</div>
+        <span class="fchip c1" aria-hidden="true">{ context: "1M" }</span>
+        <span class="fchip c2" aria-hidden="true">temp=0.7</span>
+        <span class="fchip c3" aria-hidden="true">$3.00 / 1M in</span>
+
+        <div class="phone" id="phone">
+          <div class="display">
+            <div class="island"></div>
+            <div class="statusbar">
+              <span id="sbTime">9:41</span>
+              <span class="sb-r" aria-hidden="true">
+                <svg width="17" height="11" viewBox="0 0 17 11">
+                  <g fill="currentColor">
+                    <rect x="0" y="7" width="3" height="4" rx="1" />
+                    <rect x="4.5" y="5" width="3" height="6" rx="1" />
+                    <rect x="9" y="2.5" width="3" height="8.5" rx="1" />
+                    <rect x="13.5" y="0" width="3" height="11" rx="1" />
+                  </g>
+                </svg>
+                <svg
+                  width="16"
+                  height="11"
+                  viewBox="0 0 16 11"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                >
+                  <path
+                    d="M1.5 4a9.5 9.5 0 0 1 13 0M4 6.8a6 6 0 0 1 8 0M6.6 9.4a2.4 2.4 0 0 1 2.8 0"
+                  />
+                </svg>
+                <svg width="25" height="12" viewBox="0 0 25 12">
+                  <rect
+                    x="0.7"
+                    y="0.7"
+                    width="20"
+                    height="10.6"
+                    rx="3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.2"
+                  />
+                  <rect
+                    x="2.6"
+                    y="2.6"
+                    width="13"
+                    height="6.8"
+                    rx="1.6"
+                    fill="currentColor"
+                  />
+                  <rect
+                    x="22.4"
+                    y="4"
+                    width="2.2"
+                    height="4"
+                    rx="1"
+                    fill="currentColor"
+                  />
+                </svg>
+              </span>
+            </div>
+
+            <div class="app" id="app">
+              <!-- 点单 -->
+              <section class="screen active" id="scr-menu">
+                <div class="menu-head">
+                  <div class="store-row">
+                    <div>
+                      <div class="store-name">模室 · 全球 API 直营店</div>
+                      <div class="store-sub">
+                        MT-FLAGSHIP-001 · 距你 42ms · 营业中
+                      </div>
+                    </div>
+                    <div class="store-badge">
+                      <span class="b-pill">自取 · 免排队</span
+                      ><span class="b-soft">前方 0 杯 · 即点即出</span>
+                    </div>
+                  </div>
+                  <div class="promo">
+                    ▸ 新客首单赠 1,000,000 TOKENS · 已自动放入账户
+                    <span class="blink">▌</span>
+                  </div>
+                </div>
+                <div class="menu-body">
+                  <nav class="rail" id="rail"></nav>
+                  <div class="list" id="list"></div>
+                </div>
+                <div class="cartbar" id="cartbar">
+                  <span class="cart-ico"
+                    ><svg><use href="#ic-bag" /></svg
+                    ><b class="cart-badge" id="cartBadge">0</b></span
+                  >
+                  <div class="cart-txt">
+                    <b id="cartTotal">$0.00</b
+                    ><span id="cartMeta">购物袋空空 · 点一杯试试</span>
+                  </div>
+                  <button class="cart-go off" id="cartGo">去结算</button>
+                </div>
+              </section>
+
+              <!-- 详情 -->
+              <section class="screen" id="scr-detail">
+                <div class="nav">
+                  <button class="nav-btn" data-back>
+                    <svg><use href="#ic-back" /></svg>
+                  </button>
+                  <div class="nav-title">模型详情</div>
+                  <button class="nav-btn" id="shareBtn">
+                    <svg><use href="#ic-share" /></svg>
+                  </button>
+                </div>
+                <div class="scroll" id="detailBody"></div>
+                <div class="detail-bar">
+                  <div class="db-price">
+                    <span>合计</span><b id="dbTotal">$0.00</b
+                    ><small id="dbMeta">≈1M TOKENS/杯 · 已含加料</small>
+                  </div>
+                  <button class="btn-ink" id="addCartBtn">加入购物袋</button>
+                </div>
+              </section>
+
+              <!-- 结算 -->
+              <section class="screen" id="scr-checkout">
+                <div class="nav">
+                  <button class="nav-btn" data-back>
+                    <svg><use href="#ic-back" /></svg>
+                  </button>
+                  <div class="nav-title">确认订单</div>
+                  <div class="nav-ph"></div>
+                </div>
+                <div class="scroll" id="checkoutBody"></div>
+                <div class="co-bar">
+                  <button class="btn-ink" id="submitBtn">提交订单</button>
+                </div>
+              </section>
+
+              <!-- 小票 -->
+              <section class="screen" id="scr-receipt">
+                <div class="nav">
+                  <button class="nav-btn" data-back>
+                    <svg><use href="#ic-back" /></svg>
+                  </button>
+                  <div class="nav-title">取茶小票</div>
+                  <div class="nav-ph"></div>
+                </div>
+                <div class="scroll receipt-scroll" id="receiptBody"></div>
+              </section>
+
+              <!-- 订单 -->
+              <section class="screen" id="scr-orders">
+                <div class="pg-head">
+                  <b>我的订单</b><span>ORDER HISTORY</span>
+                </div>
+                <div
+                  class="scroll"
+                  id="ordersBody"
+                  style="padding-bottom: 90px"
+                ></div>
+              </section>
+
+              <!-- 我的 -->
+              <section class="screen" id="scr-profile">
+                <div class="pg-head"><b>我的</b><span>MEMBERSHIP</span></div>
+                <div
+                  class="scroll"
+                  id="profileBody"
+                  style="padding-bottom: 90px"
+                ></div>
+              </section>
+
+              <!-- 制作中 -->
+              <div class="brew" id="brew">
+                <div class="brew-cup"><div class="brew-tea"></div></div>
+                <div class="brew-pct" id="brewPct">0%</div>
+                <div class="brew-bar"><i id="brewFill"></i></div>
+                <div class="brew-stage" id="brewStage">研磨语料 GRINDING</div>
+                <small>MODELTEA BREW SYSTEM v2.6</small>
+              </div>
+
+              <div class="toast" id="toast"></div>
+              <div class="tabbar" id="tabbar">
+                <button class="tab active" data-tab="menu">
+                  <svg><use href="#ic-cup" /></svg>点单
+                </button>
+                <button class="tab" data-tab="orders">
+                  <svg><use href="#ic-receipt" /></svg>订单
+                </button>
+                <button class="tab" data-tab="profile">
+                  <span class="crab-ico" data-crab data-size="20"></span>我的
+                </button>
+              </div>
+            </div>
+            <div class="homebar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <noscript
+      ><p style="text-align: center; padding: 20px">
+        需要启用 JavaScript 才能点单 🦀
+      </p></noscript
+    >
+
+    <script>
+      /* ================= 数据 ================= */
+      const VENDORS = {
+        anthropic: { name: "Anthropic", logo: "lg-anthropic" },
+        openai: { name: "OpenAI", logo: "lg-openai" },
+        google: { name: "Google", logo: "lg-google" },
+        qwen: { name: "Qwen · 通义", logo: "lg-qwen" },
+        deepseek: { name: "DeepSeek", logo: "lg-deepseek" },
+        meta: { name: "Meta", logo: "lg-meta" },
+      };
+      const MODELS = [
+        {
+          id: "opus",
+          vendor: "anthropic",
+          cn: "大师兄 · Opus",
+          en: "CLAUDE OPUS 4.8",
+          desc: "旗舰深焙。最难的推理、最硬的代码，一杯见底。",
+          tags: ["深度思考", "AGENT"],
+          in: 15,
+          out: 75,
+          ctx: ["256K"],
+          sales: "月售 32.6万杯",
+          cat: ["rec", "claude"],
+        },
+        {
+          id: "sonnet",
+          vendor: "anthropic",
+          cn: "二师兄 · Sonnet",
+          en: "CLAUDE SONNET 4.6",
+          desc: "均衡全能款，日常 coding 与写作的招牌配方。",
+          tags: ["1M 上下文", "视觉"],
+          in: 3,
+          out: 15,
+          ctx: ["256K", "1M"],
+          sales: "月售 89.4万杯",
+          cat: ["rec", "claude"],
+        },
+        {
+          id: "haiku",
+          vendor: "anthropic",
+          cn: "小师弟 · Haiku",
+          en: "CLAUDE HAIKU 4.5",
+          desc: "轻盈快捷，三秒出杯。轻量任务的首选小杯。",
+          tags: ["极速", "低价"],
+          in: 1,
+          out: 5,
+          ctx: ["256K"],
+          sales: "月售 57.1万杯",
+          cat: ["claude", "light"],
+        },
+        {
+          id: "fable",
+          vendor: "anthropic",
+          cn: "寓言 · Fable",
+          en: "CLAUDE FABLE 5",
+          desc: "故事特调。长篇叙事与角色扮演的私房配方。",
+          tags: ["1M 上下文", "创作"],
+          in: 5,
+          out: 25,
+          ctx: ["256K", "1M"],
+          sales: "月售 21.8万杯",
+          cat: ["rec", "claude"],
+        },
+        {
+          id: "gpt55",
+          vendor: "openai",
+          cn: "GPT-5.5 至尊",
+          en: "GPT-5.5",
+          desc: "OpenAI 旗舰现萃。多模态全开，重度任务担当。",
+          tags: ["1M 上下文", "多模态"],
+          in: 5,
+          out: 30,
+          ctx: ["256K", "1M"],
+          sales: "月售 76.2万杯",
+          cat: ["rec", "openai"],
+        },
+        {
+          id: "gpt5mini",
+          vendor: "openai",
+          cn: "GPT-5 mini 小杯",
+          en: "GPT-5 MINI",
+          desc: "轻快小杯，随手一杯不心疼。",
+          tags: ["低价", "极速"],
+          in: 0.25,
+          out: 2,
+          ctx: ["256K"],
+          sales: "月售 104.3万杯",
+          cat: ["openai", "light"],
+        },
+        {
+          id: "gemini3",
+          vendor: "google",
+          cn: "双子 · Gemini 3 Pro",
+          en: "GEMINI 3 PRO",
+          desc: "多模态优等生，超长上下文一口闷。",
+          tags: ["1M 上下文", "视觉"],
+          in: 1.25,
+          out: 10,
+          ctx: ["256K", "1M"],
+          sales: "月售 63.9万杯",
+          cat: ["rec", "google"],
+        },
+        {
+          id: "qwen3",
+          vendor: "qwen",
+          cn: "通义 · Qwen3 Max",
+          en: "QWEN3-MAX",
+          desc: "中文特调，懂梗懂你。阿里旗舰配方。",
+          tags: ["1M 上下文", "中文"],
+          in: 1.2,
+          out: 6,
+          ctx: ["256K", "1M"],
+          sales: "月售 48.7万杯",
+          cat: ["cn"],
+        },
+        {
+          id: "dsv3",
+          vendor: "deepseek",
+          cn: "深潜 · DeepSeek V3",
+          en: "DEEPSEEK V3",
+          desc: "性价比之王。开源深潜，回甘悠长。",
+          tags: ["开源", "低价"],
+          in: 0.27,
+          out: 1.1,
+          ctx: ["256K"],
+          sales: "月售 91.5万杯",
+          cat: ["cn", "open", "light"],
+        },
+        {
+          id: "llama4",
+          vendor: "meta",
+          cn: "野马 · Llama 4 Mvk",
+          en: "LLAMA 4 MAVERICK",
+          desc: "开源放养，自由驰骋。MoE 草原风味。",
+          tags: ["开源", "MoE"],
+          in: 0.2,
+          out: 0.6,
+          ctx: ["256K"],
+          sales: "月售 39.0万杯",
+          cat: ["open"],
+        },
+      ];
+      const CATS = [
+        { id: "rec", name: "招牌必点", en: "SIGNATURE" },
+        { id: "claude", name: "Claude 系", en: "ANTHROPIC" },
+        { id: "openai", name: "GPT 系", en: "OPENAI" },
+        { id: "google", name: "Gemini", en: "GOOGLE" },
+        { id: "cn", name: "国产精选", en: "DOMESTIC" },
+        { id: "open", name: "开源放养", en: "OPEN SRC" },
+        { id: "light", name: "轻量小杯", en: "LITE" },
+      ];
+      const SIZES = [
+        { id: "256K", name: "中杯", sub: "256K CTX · 标准价", mult: 1 },
+        { id: "1M", name: "大杯", sub: "1M CTX · 溢价 ×2", mult: 2 },
+      ];
+      const TEMPS = [
+        { name: "无糖", sub: "TEMP 0.0" },
+        { name: "微糖", sub: "TEMP 0.3" },
+        { name: "半糖", sub: "TEMP 0.7" },
+        { name: "标准糖", sub: "TEMP 1.0" },
+      ];
+      const TOPPINGS = [
+        { id: "web", ch: "珍", name: "联网搜索", en: "WEB SEARCH", fee: 0.8 },
+        { id: "vision", ch: "椰", name: "视觉识别", en: "VISION", fee: 0.25 },
+        {
+          id: "think",
+          ch: "芋",
+          name: "深度思考",
+          en: "DEEP THINKING",
+          fee: 2,
+        },
+      ];
+      const ADDONS = [
+        {
+          id: "img",
+          ch: "图",
+          name: "图片输入",
+          en: "IMAGE ATTACH",
+          unit: "张",
+          fee: 0.004,
+        },
+        {
+          id: "doc",
+          ch: "文",
+          name: "文档解析",
+          en: "DOC PARSE",
+          unit: "份",
+          fee: 0.1,
+        },
+      ];
+      const SERVE = { in: 0.75, out: 0.25 }; // 每杯 ≈ 1M tokens：750K 输入 + 250K 输出
+
+      /* ================= 工具 ================= */
+      const $ = (s) => document.querySelector(s);
+      const M = (id) => MODELS.find((m) => m.id === id);
+      const money = (v) =>
+        "$" +
+        (v >= 100
+          ? v.toFixed(0)
+          : v.toFixed(2).replace(/0$/, "").replace(/\.$/, ""));
+      const rate = (v) => "$" + v.toFixed(2).replace(/\.?0+$/, "");
+      const pad = (n) => String(n).padStart(2, "0");
+
+      /* 像素螃蟹 Clawd */
+      const CRAB = [
+        ".##..........##.",
+        "####........####",
+        "##.#........#.##",
+        ".###.##..##.###.",
+        "...##########...",
+        ".#.##########.#.",
+        "#..####..####..#",
+        ".#..########..#.",
+        "..#..######..#..",
+      ];
+      function crabSVG() {
+        let r = "";
+        CRAB.forEach((row, y) =>
+          [...row].forEach((c, x) => {
+            if (c === "#")
+              r += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
+          }),
+        );
+        return `<svg viewBox="0 0 16 9" fill="currentColor" shape-rendering="crispEdges" style="width:100%;height:100%;display:block">${r}</svg>`;
+      }
+      document
+        .querySelectorAll("[data-crab]")
+        .forEach((el) => (el.innerHTML = crabSVG()));
+
+      /* ================= 状态 ================= */
+      let cart = [],
+        orders = [],
+        cur = null,
+        prevScreen = "menu",
+        brewing = false;
+      const calc = (it) => {
+        const m = M(it.model),
+          mult = it.size === "1M" ? 2 : 1;
+        const rin = m.in * mult,
+          rout = m.out * mult;
+        const base = SERVE.in * rin + SERVE.out * rout;
+        const tops = it.toppings.reduce(
+          (s, t) => s + TOPPINGS.find((x) => x.id === t).fee,
+          0,
+        );
+        const addon = ADDONS.reduce((s, a) => s + it.addons[a.id] * a.fee, 0);
+        return {
+          rin,
+          rout,
+          base,
+          tops,
+          addon,
+          line: (base + tops) * it.qty + addon,
+        };
+      };
+      const cartSum = () => {
+        let n = 0,
+          base = 0,
+          tops = 0,
+          addon = 0;
+        cart.forEach((it) => {
+          const c = calc(it);
+          n += it.qty;
+          base += c.base * it.qty;
+          tops += c.tops * it.qty;
+          addon += c.addon;
+        });
+        const sub = base + tops + addon,
+          disc = sub * 0.05;
+        return { n, base, tops, addon, sub, disc, total: sub - disc };
+      };
+
+      /* ================= 导航 ================= */
+      const TAB_SCREENS = {
+        menu: "menu",
+        orders: "orders",
+        profile: "profile",
+      };
+      function show(name, dir = "fwd") {
+        if (name === "detail" || name === "checkout" || name === "receipt")
+          prevScreen = document
+            .querySelector(".screen.active")
+            .id.replace("scr-", "");
+        document
+          .querySelectorAll(".screen")
+          .forEach((s) => s.classList.remove("active", "back"));
+        const el = $("#scr-" + name);
+        if (dir === "back") el.classList.add("back");
+        el.classList.add("active");
+        const tab = TAB_SCREENS[name];
+        $("#tabbar").classList.toggle("hide", !tab);
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) => t.classList.toggle("active", t.dataset.tab === tab));
+      }
+      document.querySelectorAll("[data-back]").forEach((b) =>
+        b.addEventListener("click", () => {
+          const map = {
+            detail: "menu",
+            checkout: "menu",
+            receipt: prevScreen === "orders" ? "orders" : "menu",
+          };
+          const cur = document
+            .querySelector(".screen.active")
+            .id.replace("scr-", "");
+          show(map[cur] || "menu", "back");
+        }),
+      );
+      document.querySelectorAll(".tab").forEach((t) =>
+        t.addEventListener("click", () => {
+          if (t.dataset.tab === "orders") renderOrders();
+          show(t.dataset.tab);
+        }),
+      );
+
+      /* ================= Toast ================= */
+      let toastT;
+      function toast(msg) {
+        const t = $("#toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        clearTimeout(toastT);
+        toastT = setTimeout(() => t.classList.remove("show"), 1700);
+      }
+
+      /* ================= 菜单页 ================= */
+      function renderMenu() {
+        $("#rail").innerHTML = CATS.map(
+          (c, i) =>
+            `<button class="rail-item${i === 0 ? " active" : ""}" data-cat="${c.id}">${c.name}<small>${c.en}</small></button>`,
+        ).join("");
+        $("#list").innerHTML = CATS.map((c) => {
+          const ms = MODELS.filter((m) => m.cat.includes(c.id));
+          if (!ms.length) return "";
+          return `<div class="sec" data-sec="${c.id}">
+      <div class="sec-title"><b>${c.name}</b><span>${c.en}</span></div>
+      ${ms
+        .map(
+          (m) => `<div class="m-card" data-m="${m.id}">
+        <span class="m-logo"><svg><use href="#${VENDORS[m.vendor].logo}"/></svg></span>
+        <div class="m-info">
+          <div class="m-name">${m.cn}</div>
+          <div class="m-en">${m.en}</div>
+          <div class="m-desc">${m.desc}</div>
+          <div class="m-tags">${m.tags.map((t) => `<span class="m-tag">${t}</span>`).join("")}</div>
+        </div>
+        <div class="m-buy">
+          <span class="m-sales">${m.sales}</span>
+          <div class="m-price"><i>$</i>${(SERVE.in * m.in + SERVE.out * m.out).toFixed(2)}<small>入${rate(m.in)}·出${rate(m.out)} /1M</small></div>
+          <button class="m-add" aria-label="点单">+</button>
+        </div>
+      </div>`,
+        )
+        .join("")}
+    </div>`;
+        }).join("");
+      }
+      $("#list").addEventListener("click", (e) => {
+        const card = e.target.closest(".m-card");
+        if (card) openDetail(card.dataset.m);
+      });
+      $("#rail").addEventListener("click", (e) => {
+        const it = e.target.closest(".rail-item");
+        if (!it) return;
+        document
+          .querySelectorAll(".rail-item")
+          .forEach((r) => r.classList.remove("active"));
+        it.classList.add("active");
+        const sec = document.querySelector(
+          `.sec[data-sec="${it.dataset.cat}"]`,
+        );
+        $("#list").scrollTo({ top: sec.offsetTop - 4, behavior: "smooth" });
+      });
+      $("#list").addEventListener("scroll", () => {
+        const top = $("#list").scrollTop + 90;
+        let cur = CATS[0].id;
+        document.querySelectorAll(".sec").forEach((s) => {
+          if (s.offsetTop <= top) cur = s.dataset.sec;
+        });
+        document
+          .querySelectorAll(".rail-item")
+          .forEach((r) => r.classList.toggle("active", r.dataset.cat === cur));
+      });
+
+      /* ================= 详情页 ================= */
+      function openDetail(id) {
+        const m = M(id);
+        cur = {
+          model: id,
+          size: "256K",
+          temp: 2,
+          toppings: [],
+          addons: { img: 0, doc: 0 },
+          qty: 1,
+        };
+        const v = VENDORS[m.vendor];
+        const boba = [14, 30, 48, 64, 80, 96]
+          .map(
+            (l, i) =>
+              `<span class="boba" style="left:${l}px;width:${9 + (i % 3) * 3}px;height:${9 + (i % 3) * 3}px;animation-delay:${i * 0.35}s"></span>`,
+          )
+          .join("");
+        $("#detailBody").innerHTML = `
+    <div class="cup-stage">
+      <span class="ftag t1">CTX ${m.ctx.join(" / ")}</span>
+      <span class="ftag t2">入${rate(m.in)} · 出${rate(m.out)}</span>
+      <span class="ftag t3">≈1M TK /杯</span>
+      <div class="cup">
+        <div class="steam"><i></i><i></i><i></i></div>
+        <div class="straw"></div><div class="lid-rim"></div><div class="lid"></div>
+        <div class="cup-body">
+          <div class="tea">${boba}</div>
+          <div class="cup-label"><svg><use href="#${v.logo}"/></svg><b>${m.cn.split(" · ")[0]}</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="d-head">
+      <div><div class="d-cn">${m.cn}</div><div class="d-en">${m.en}</div></div>
+      <span class="d-vendor"><svg><use href="#${v.logo}"/></svg><span>${v.name}</span></span>
+    </div>
+    <p class="d-desc">${m.desc}</p>
+    <div class="d-price">
+      <b><i>$</i>${(SERVE.in * m.in + SERVE.out * m.out).toFixed(2)}<em>/杯起</em></b>
+      <span class="d-rate">1M TOKENS · 入 ${rate(m.in)} / 出 ${rate(m.out)}</span>
+    </div>
+    <div class="spec">
+      <div class="spec-head"><b>杯型</b><span>CONTEXT</span><em>大杯长文本溢价 ×2</em></div>
+      <div class="opts" id="sizeOpts">${SIZES.map((s) => {
+        const ok = m.ctx.includes(s.id);
+        return `<button class="opt${s.id === "256K" ? " sel" : ""}${ok ? "" : " dis"}" data-size="${s.id}">
+          ${ok ? "" : '<span class="sold">售罄</span>'}<b>${s.name}</b><span>${s.sub}</span></button>`;
+      }).join("")}</div>
+    </div>
+    <div class="spec">
+      <div class="spec-head"><b>甜度</b><span>TEMPERATURE</span></div>
+      <div class="opts four" id="tempOpts">${TEMPS.map((t, i) => `<button class="opt${i === 2 ? " sel" : ""}" data-temp="${i}"><b>${t.name}</b><span>${t.sub}</span></button>`).join("")}</div>
+    </div>
+    <div class="spec">
+      <div class="spec-head"><b>加料</b><span>TOPPINGS</span><em>按每 1M TOKENS 计</em></div>
+      <div id="topRows">${TOPPINGS.map(
+        (t) => `
+        <button class="t-row" data-top="${t.id}">
+          <span class="t-ico">${t.ch}</span>
+          <span class="t-name"><b>${t.name}</b><span>${t.en}</span></span>
+          <span class="t-fee">+${rate(t.fee)}/1M</span>
+          <span class="t-chk"><svg><use href="#ic-check"/></svg></span>
+        </button>`,
+      ).join("")}</div>
+    </div>
+    <div class="spec">
+      <div class="spec-head"><b>加购</b><span>ATTACHMENTS</span></div>
+      <div id="addonRows">${ADDONS.map(
+        (a) => `
+        <div class="a-row">
+          <span class="t-ico">${a.ch}</span>
+          <span class="t-name"><b>${a.name}</b><span>${a.en} · ≈${rate(a.fee)}/${a.unit}</span></span>
+          <span class="step">
+            <button data-ad="${a.id}" data-d="-1" disabled>−</button>
+            <output id="ad-${a.id}">0</output>
+            <button data-ad="${a.id}" data-d="1">+</button>
+          </span>
+        </div>`,
+      ).join("")}</div>
+    </div>
+    <div class="qty-row">
+      <div><b>数量</b><span>QTY</span></div>
+      <span class="step">
+        <button id="qMinus" disabled>−</button><output id="qOut">1</output><button id="qPlus">+</button>
+      </span>
+    </div>`;
+        show("detail");
+        updateDetail();
+      }
+      $("#detailBody").addEventListener("click", (e) => {
+        const s = e.target.closest("[data-size]");
+        if (s) {
+          cur.size = s.dataset.size;
+          document
+            .querySelectorAll("#sizeOpts .opt")
+            .forEach((o) =>
+              o.classList.toggle("sel", o.dataset.size === cur.size),
+            );
+          updateDetail();
+          return;
+        }
+        const t = e.target.closest("[data-temp]");
+        if (t) {
+          cur.temp = +t.dataset.temp;
+          document
+            .querySelectorAll("#tempOpts .opt")
+            .forEach((o) =>
+              o.classList.toggle("sel", +o.dataset.temp === cur.temp),
+            );
+          updateDetail();
+          return;
+        }
+        const tp = e.target.closest("[data-top]");
+        if (tp) {
+          const id = tp.dataset.top;
+          cur.toppings = cur.toppings.includes(id)
+            ? cur.toppings.filter((x) => x !== id)
+            : [...cur.toppings, id];
+          tp.classList.toggle("on");
+          updateDetail();
+          return;
+        }
+        const ad = e.target.closest("[data-ad]");
+        if (ad) {
+          const id = ad.dataset.ad;
+          cur.addons[id] = Math.max(
+            0,
+            Math.min(9, cur.addons[id] + +ad.dataset.d),
+          );
+          $("#ad-" + id).textContent = cur.addons[id];
+          ad.parentElement.querySelector("[data-d='-1']").disabled =
+            cur.addons[id] === 0;
+          ad.parentElement.querySelector("[data-d='1']").disabled =
+            cur.addons[id] === 9;
+          updateDetail();
+          return;
+        }
+        if (e.target.closest("#qMinus")) {
+          cur.qty = Math.max(1, cur.qty - 1);
+          syncQty();
+        }
+        if (e.target.closest("#qPlus")) {
+          cur.qty = Math.min(9, cur.qty + 1);
+          syncQty();
+        }
+      });
+      function syncQty() {
+        $("#qOut").textContent = cur.qty;
+        $("#qMinus").disabled = cur.qty === 1;
+        $("#qPlus").disabled = cur.qty === 9;
+        updateDetail();
+      }
+      function updateDetail() {
+        const c = calc({ ...cur, qty: 1 });
+        $("#dbTotal").textContent = money(
+          ((c.line * cur.qty) / cur.qty) * cur.qty,
+        );
+        $("#dbMeta").textContent =
+          `≈${cur.qty}M TOKENS · ${TEMPS[cur.temp].name} · 已含加料`;
+      }
+      $("#shareBtn").addEventListener("click", () =>
+        toast("分享海报已生成（demo）"),
+      );
+      $("#addCartBtn").addEventListener("click", () => {
+        const key = JSON.stringify([
+          cur.model,
+          cur.size,
+          cur.temp,
+          cur.toppings,
+          cur.addons,
+        ]);
+        const ex = cart.find((i) => i.key === key);
+        if (ex) ex.qty = Math.min(9, ex.qty + cur.qty);
+        else cart.push({ ...cur, key });
+        updateCart(true);
+        toast(`已加入购物袋 · ${M(cur.model).cn} ×${cur.qty}`);
+        show("menu", "back");
+      });
+
+      /* ================= 购物袋 ================= */
+      function updateCart(bump) {
+        const s = cartSum();
+        const badge = $("#cartBadge");
+        badge.textContent = s.n;
+        badge.classList.toggle("on", s.n > 0);
+        $("#cartTotal").textContent = money(s.total);
+        $("#cartMeta").textContent = s.n
+          ? `已选 ${s.n} 杯 · ≈${s.n}M TOKENS`
+          : "购物袋空空 · 点一杯试试";
+        $("#cartGo").classList.toggle("off", !s.n);
+        if (bump) {
+          const cb = $("#cartbar");
+          cb.classList.remove("bump");
+          void cb.offsetWidth;
+          cb.classList.add("bump");
+        }
+      }
+      $("#cartGo").addEventListener("click", () => {
+        if (!cart.length) return;
+        renderCheckout();
+        show("checkout");
+      });
+
+      /* ================= 结算页 ================= */
+      let noteVal = "";
+      function renderCheckout() {
+        const s = cartSum();
+        const qr = [...Array(49)]
+          .map(() => `<i class="${Math.random() > 0.5 ? "" : "o"}"></i>`)
+          .join("");
+        $("#checkoutBody").innerHTML = `
+    <div class="co-store">
+      <div><b>模室 · 全球 API 直营店</b><span>自取 · 预计 0.8s 出杯 · TTFT ≈ 320ms</span></div>
+      <span class="co-qr">${qr}</span>
+    </div>
+    <div class="co-items">${cart
+      .map((it) => {
+        const m = M(it.model),
+          c = calc(it);
+        const specs = [
+          `${it.size === "1M" ? "大杯 1M" : "中杯 256K"}`,
+          TEMPS[it.temp].name +
+            ` ${TEMPS[it.temp].sub.replace("TEMP", "temp")}`,
+          ...it.toppings.map((t) => TOPPINGS.find((x) => x.id === t).name),
+          ...ADDONS.filter((a) => it.addons[a.id] > 0).map(
+            (a) => `${a.name}×${it.addons[a.id]}`,
+          ),
+        ];
+        return `<div class="co-item">
+        <div class="co-top"><b>${m.cn}</b><span class="q">×${it.qty}</span><span class="p">${money(c.line)}</span></div>
+        <div class="co-specs">${specs.map((x) => `<span class="co-sp">${x}</span>`).join("")}</div>
+      </div>`;
+      })
+      .join("")}
+    </div>
+    <input class="co-note" id="noteInput" placeholder="备注：例如「少废话，直接给代码」" value="${noteVal}">
+    <div class="co-sum">
+      <div class="sum-row"><span>模型费（${s.n} 杯 ≈ ${s.n}M tokens）</span><output>${money(s.base)}</output></div>
+      <div class="sum-row sub"><span>输入 ${(s.n * SERVE.in).toFixed(2)}M tokens</span><output>—</output></div>
+      <div class="sum-row sub"><span>输出 ${(s.n * SERVE.out).toFixed(2)}M tokens</span><output>—</output></div>
+      <div class="sum-row"><span>加料费</span><output>${money(s.tops)}</output></div>
+      <div class="sum-row"><span>附件费</span><output>${money(s.addon)}</output></div>
+      <div class="sum-row disc"><span>黑金会员 95 折</span><output>−${money(s.disc)}</output></div>
+      <div class="sum-div"></div>
+      <div class="sum-row total"><b>合计</b><output>${money(s.total)}</output></div>
+    </div>
+    <p class="co-agree">下单即代表同意《TOKEN 饮用协议》与《注意力隐私政策》</p>`;
+        $("#submitBtn").textContent = `提交订单 · ${money(s.total)}`;
+        $("#noteInput").addEventListener(
+          "input",
+          (e) => (noteVal = e.target.value),
+        );
+      }
+      $("#submitBtn").addEventListener("click", async () => {
+        if (brewing || !cart.length) return;
+        brewing = true;
+        const stages = [
+          "研磨语料 GRINDING",
+          "萃取注意力 ATTENTION BREW",
+          "拉花 LOGITS STEAMING",
+          "封膜出杯 SEALING",
+        ];
+        $("#brew").classList.add("on");
+        const fill = $("#brewFill"),
+          pct = $("#brewPct"),
+          st = $("#brewStage");
+        for (let p = 0; p <= 100; p += 2) {
+          fill.style.width = p + "%";
+          pct.textContent = p + "%";
+          st.textContent = stages[Math.min(3, Math.floor(p / 26))];
+          await new Promise((r) => setTimeout(r, 42));
+        }
+        const now = new Date();
+        const order = {
+          no: `MT${String(now.getFullYear()).slice(2)}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${1000 + Math.floor(Math.random() * 9000)}`,
+          code:
+            "ABCD"[Math.floor(Math.random() * 4)] +
+            pad(Math.floor(Math.random() * 100)),
+          time: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`,
+          items: JSON.parse(JSON.stringify(cart)),
+          note: noteVal,
+          ...cartSum(),
+        };
+        orders.unshift(order);
+        cart = [];
+        noteVal = "";
+        updateCart();
+        $("#brew").classList.remove("on");
+        fill.style.width = "0";
+        brewing = false;
+        renderReceipt(order);
+        show("receipt");
+      });
+
+      /* ================= 小票 ================= */
+      function renderReceipt(o) {
+        $("#receiptBody").innerHTML = `
+    <div class="printer"><b>MODELTEA · PRINTER ONLINE</b></div>
+    <div class="slot"><div class="paper">
+      <div class="r-brand">模 室</div>
+      <div class="r-sub">MODELTEA · 取茶小票 · NO.${o.code}</div>
+      <div class="r-dash"></div>
+      <div class="r-row"><span>单号</span><span>${o.no}</span></div>
+      <div class="r-row"><span>时间</span><span>${o.time}</span></div>
+      <div class="r-row"><span>门店</span><span>全球 API 直营店</span></div>
+      <div class="r-row"><span>取餐方式</span><span>API 直连 · 0.8s</span></div>
+      <div class="r-code"><span>— 取 餐 码 —</span><b>${o.code}</b></div>
+      <div class="r-dash"></div>
+      ${o.items
+        .map((it) => {
+          const m = M(it.model),
+            c = calc(it);
+          const tops =
+            it.toppings
+              .map((t) => TOPPINGS.find((x) => x.id === t).name)
+              .join(" + ") || "无加料";
+          const ads = ADDONS.filter((a) => it.addons[a.id] > 0)
+            .map((a) => `${a.name}×${it.addons[a.id]}`)
+            .join(" · ");
+          return `<div class="r-item">
+          <div class="h"><span>${m.cn} ${it.size === "1M" ? "(大杯1M)" : "(中杯256K)"}</span><span>×${it.qty} ${money(c.line)}</span></div>
+          <div class="s">甜度 ${TEMPS[it.temp].name} · 加料 ${tops}${ads ? " · " + ads : ""}</div>
+          <div class="t">入 750K×${rate(c.rin)} ｜ 出 250K×${rate(c.rout)} /1M/杯</div>
+        </div>`;
+        })
+        .join("")}
+      <div class="r-tok">
+        <div><span>TOKEN 总量</span><span>≈ ${o.n}.00 M</span></div>
+        <div><span>模型费</span><span>${money(o.base)}</span></div>
+        <div><span>加料费</span><span>${money(o.tops)}</span></div>
+        <div><span>附件费</span><span>${money(o.addon)}</span></div>
+        <div><span>黑金折扣</span><span>−${money(o.disc)}</span></div>
+      </div>
+      ${o.note ? `<div class="r-row"><span>备注</span><span>${o.note}</span></div><div class="r-dash"></div>` : ""}
+      <div class="r-total"><b>实 付</b><output>${money(o.total)}</output></div>
+      <div class="r-bar"></div>
+      <div class="r-barno">${o.no}</div>
+      <div class="r-foot">谢谢惠顾 · TOKENS ARE BREWED FRESH<br>Wi-Fi: MODELTEA-5G · 密码: attention-is-all-you-need<br>本单由像素螃蟹 CLAWD 质检 · 0 添加防腐剂</div>
+      <div class="stamp"><span style="width:42px;height:24px">${crabSVG()}</span><b>已接单</b><span>ACCEPTED</span></div>
+    </div></div>
+    <div class="r-actions">
+      <button class="btn-ghost" id="rOrders">查看订单</button>
+      <button class="btn-ink" id="rAgain">再来一单</button>
+    </div>`;
+        $("#rOrders").onclick = () => {
+          renderOrders();
+          show("orders");
+        };
+        $("#rAgain").onclick = () => {
+          cart = JSON.parse(JSON.stringify(o.items));
+          updateCart(true);
+          renderCheckout();
+          show("checkout");
+          toast("已按原单配好 · 可微调规格");
+        };
+      }
+
+      /* ================= 订单 / 我的 ================= */
+      function renderOrders() {
+        const el = $("#ordersBody");
+        if (!orders.length) {
+          el.innerHTML = `<div class="empty"><span style="display:block;width:84px;height:47px;margin:0 auto 16px">${crabSVG()}</span>
+      <b>蟹老板还没有订单</b><span>GO ORDER A MODEL TEA</span></div>`;
+          return;
+        }
+        el.innerHTML = orders
+          .map(
+            (o, i) => `
+    <button class="o-card" data-o="${i}">
+      <div class="o-top"><b>${o.code}</b><span class="o-st">已完成</span></div>
+      <div class="o-name">${o.items.map((it) => M(it.model).cn).join(" · ")}</div>
+      <div class="o-specs">${o.items.map((it) => `<span class="co-sp">${it.size === "1M" ? "大杯1M" : "中杯256K"} ×${it.qty}</span>`).join("")}<span class="co-sp">≈${o.n}M TOKENS</span></div>
+      <div class="o-bot"><span>${o.time}</span><b>${money(o.total)}</b></div>
+    </button>`,
+          )
+          .join("");
+        el.querySelectorAll(".o-card").forEach(
+          (c) =>
+            (c.onclick = () => {
+              renderReceipt(orders[+c.dataset.o]);
+              show("receipt");
+            }),
+        );
+      }
+      function renderProfile() {
+        $("#profileBody").innerHTML = `
+    <div class="member">
+      <span class="wm">${crabSVG()}</span>
+      <b>模室 · 黑金卡</b>
+      <div class="lvl">BLACK GOLD MEMBER · EST. 2026</div>
+      <div class="who">蟹老板 · ID MT-8848</div>
+      <div class="bal">TOKEN 余额<b>12,500,000</b></div>
+      <div class="m-prog"><i></i></div>
+      <div class="m-cap">距 钻石会员 还差 7.5M tokens</div>
+    </div>
+    <div class="pf-sec">
+      ${[
+        ["赠", "首单 1M tokens 免费", "已领取"],
+        ["邀", "邀请好友各得 500K", "去邀请"],
+        ["诞", "生日赠饮 Haiku 小杯", "08-08"],
+      ]
+        .map(
+          (p) => `
+      <button class="pf-row"><span class="pf-ico">${p[0]}</span><b>${p[1]}</b><span>${p[2]}</span><svg><use href="#ic-chev"/></svg></button>`,
+        )
+        .join("")}
+    </div>
+    <div class="pf-sec">
+      ${[
+        ["址", "取餐地址管理", "API KEY"],
+        ["票", "发票与账单", "USD"],
+        ["店", "联系店长（蟹经理）", "在线"],
+        ["于", "关于模室", "v1.0"],
+      ]
+        .map(
+          (p) => `
+      <button class="pf-row"><span class="pf-ico">${p[0]}</span><b>${p[1]}</b><span>${p[2]}</span><svg><use href="#ic-chev"/></svg></button>`,
+        )
+        .join("")}
+    </div>`;
+        $("#profileBody")
+          .querySelectorAll(".pf-row")
+          .forEach((r) => (r.onclick = () => toast("演示原型 · 敬请期待")));
+      }
+
+      /* ================= 左侧茶单 & Ticker ================= */
+      function renderRoster() {
+        $("#roster").innerHTML = MODELS.map(
+          (m) => `
+    <button class="roster-row" data-m="${m.id}">
+      <span class="rr-chip"><svg><use href="#${VENDORS[m.vendor].logo}"/></svg></span>
+      <span><span class="rr-name">${m.cn}</span><br><span class="rr-en">${m.en}</span></span>
+      <span class="rr-price">入${rate(m.in)} / 出${rate(m.out)}</span>
+    </button>`,
+        ).join("");
+        document.querySelectorAll(".roster-row").forEach(
+          (r) =>
+            (r.onclick = () => {
+              openDetail(r.dataset.m);
+              const p = $("#phone");
+              p.classList.remove("pulse");
+              void p.offsetWidth;
+              p.classList.add("pulse");
+            }),
+        );
+        const seg = MODELS.map(
+          (m) => `${m.en} 入${rate(m.in)}/出${rate(m.out)}`,
+        ).join("<em>◆</em>");
+        $("#tickerTrack").innerHTML =
+          `MODELTEA 今日牌价 // ${seg}<em>◆</em>1 杯 ≈ 1M TOKENS<em>◆</em>OPEN 24H · API 直连 · 免排队<em>◆</em>` +
+          seg;
+      }
+
+      /* ================= 状态栏时钟 ================= */
+      function tickClock() {
+        const n = new Date();
+        $("#sbTime").textContent = `${n.getHours()}:${pad(n.getMinutes())}`;
+      }
+      tickClock();
+      setInterval(tickClock, 20000);
+
+      /* ================= 启动 ================= */
+      renderMenu();
+      renderRoster();
+      renderProfile();
+      updateCart();
+    </script>
+  </body>
+</html>

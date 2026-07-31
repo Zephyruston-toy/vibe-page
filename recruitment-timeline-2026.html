@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>Flatpickr 暖色日期选择器</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/plugins/monthSelect/monthSelect.css"
+    />
+
+    <style>
+      :root {
+        --bg: #fffaf5;
+        --card: #fffdf9;
+        --line: #f3e2cf;
+        --text: #431407;
+        --muted: #9a6a4f;
+        --accent: #ea580c;
+        --accent-2: #f97316;
+        --accent-soft: #ffedd5;
+        --ring: rgba(234, 88, 12, 0.16);
+        --shadow: 0 18px 45px rgba(146, 64, 14, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        min-height: 100vh;
+        color: var(--text);
+        font-family:
+          "Inter", "Noto Sans SC", "PingFang SC", "Hiragino Sans GB",
+          "Microsoft YaHei", sans-serif;
+        background:
+          radial-gradient(circle at top left, #fff3e6, transparent 36%),
+          radial-gradient(circle at bottom right, #ffe8d2, transparent 32%),
+          var(--bg);
+      }
+
+      body::before,
+      body::after {
+        content: "";
+        position: fixed;
+        z-index: -1;
+        border-radius: 50%;
+        filter: blur(85px);
+        opacity: 0.55;
+        pointer-events: none;
+      }
+
+      body::before {
+        width: 420px;
+        height: 420px;
+        background: #ffedd5;
+        top: -140px;
+        left: -120px;
+      }
+
+      body::after {
+        width: 380px;
+        height: 380px;
+        background: #ffe4c7;
+        bottom: -140px;
+        right: -100px;
+      }
+
+      ::selection {
+        background: #fed7aa;
+        color: #7c2d12;
+      }
+
+      .page {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 48px 20px 64px;
+      }
+
+      .hero {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid #fdba74;
+        background: #fff7ed;
+        color: #c2410c;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        box-shadow: 0 10px 24px rgba(234, 88, 12, 0.08);
+      }
+
+      .hero h1 {
+        margin: 18px 0 10px;
+        font-size: clamp(30px, 5vw, 46px);
+        line-height: 1.15;
+        letter-spacing: 0.5px;
+        color: #3f1306;
+      }
+
+      .subtitle {
+        max-width: 680px;
+        margin: 0 auto;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.8;
+      }
+
+      .error {
+        max-width: 960px;
+        margin: 0 auto 18px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: #fff1f2;
+        border: 1px solid #fecdd3;
+        color: #9f1239;
+        font-weight: 700;
+        line-height: 1.6;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+        align-items: start;
+      }
+
+      .panel {
+        position: relative;
+        overflow: hidden;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 22px;
+        box-shadow: var(--shadow);
+      }
+
+      .panel::before {
+        content: "";
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 5px;
+        background: linear-gradient(90deg, #fdba74, #fb923c, #ea580c);
+        opacity: 0.92;
+      }
+
+      .summary {
+        grid-column: 1 / -1;
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      .panel-icon {
+        flex: 0 0 auto;
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #fff1e2, #fed7aa);
+        color: #c2410c;
+        box-shadow: inset 0 0 0 1px #fdba74;
+      }
+
+      .panel-icon svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .panel-head h2 {
+        margin: 0;
+        font-size: 18px;
+        color: #7c2d12;
+      }
+
+      .panel-head p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 13.5px;
+        line-height: 1.6;
+      }
+
+      .control {
+        position: relative;
+      }
+
+      .control .icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 19px;
+        height: 19px;
+        color: var(--accent);
+        pointer-events: none;
+        display: grid;
+        place-items: center;
+      }
+
+      .control .icon svg {
+        width: 19px;
+        height: 19px;
+      }
+
+      .control .chev {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 16px;
+        height: 16px;
+        color: #d97706;
+        pointer-events: none;
+        display: grid;
+        place-items: center;
+      }
+
+      .control .chev svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .control input {
+        width: 100%;
+        height: 54px;
+        border: 1.5px solid #f0d9c5;
+        border-radius: 16px;
+        background: #ffffff;
+        color: var(--text);
+        font: inherit;
+        font-size: 15px;
+        padding: 0 44px 0 46px;
+        outline: none;
+        cursor: pointer;
+        transition:
+          border-color 0.18s ease,
+          box-shadow 0.18s ease,
+          background 0.18s ease;
+      }
+
+      .control input::placeholder {
+        color: #c79b7d;
+      }
+
+      .control input:hover {
+        border-color: #fdba74;
+      }
+
+      .control input:focus,
+      .control input.active {
+        border-color: #fb923c;
+        background: #fffdf9;
+        box-shadow: 0 0 0 4px var(--ring);
+      }
+
+      .status {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        padding: 14px 15px;
+        border-radius: 18px;
+        background: #fff8ef;
+        border: 1px solid #f6dfc7;
+      }
+
+      .status-label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        color: #b08364;
+      }
+
+      .status strong {
+        font-size: 15px;
+        color: #9a3412;
+        word-break: break-all;
+      }
+
+      .status.empty strong {
+        color: #bb8d6d;
+        font-weight: 600;
+      }
+
+      .status-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .ghost-btn {
+        border: 1px solid #f6d7ba;
+        background: #ffffff;
+        color: #c2410c;
+        border-radius: 12px;
+        padding: 8px 12px;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        transition:
+          transform 0.16s ease,
+          background 0.16s ease,
+          box-shadow 0.16s ease;
+      }
+
+      .ghost-btn:hover {
+        background: #ffedd5;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px rgba(234, 88, 12, 0.1);
+      }
+
+      .ghost-btn:active {
+        transform: translateY(0);
+      }
+
+      .ghost-btn.warn {
+        color: #b91c1c;
+        border-color: #fecaca;
+      }
+
+      .ghost-btn.warn:hover {
+        background: #fef2f2;
+      }
+
+      .code {
+        margin: 0;
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: #2b1710;
+        color: #ffe8d1;
+        border: 1px solid #5b2f1d;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+          monospace;
+        font-size: 13px;
+        line-height: 1.75;
+        overflow: auto;
+        white-space: pre;
+      }
+
+      .foot {
+        margin-top: 26px;
+        text-align: center;
+        color: #b08364;
+        font-size: 13px;
+        line-height: 1.8;
+      }
+
+      .foot code {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 8px;
+        background: #fff1e3;
+        border: 1px solid #f3d3b3;
+        color: #9a3412;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
+      @media (max-width: 860px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* ----------------------------- */
+      /* Flatpickr 暖色主题覆盖         */
+      /* ----------------------------- */
+
+      .flatpickr-calendar {
+        font-family: inherit;
+        background: #fffdf9;
+        border: 1px solid #f3dcc8;
+        border-radius: 20px;
+        box-shadow: 0 30px 80px rgba(124, 45, 18, 0.22);
+        width: 320px !important;
+        max-width: calc(100vw - 32px);
+        padding: 10px;
+        box-sizing: border-box;
+      }
+
+      .flatpickr-calendar.arrowTop:before,
+      .flatpickr-calendar.arrowTop:after,
+      .flatpickr-calendar.arrowBottom:before,
+      .flatpickr-calendar.arrowBottom:after {
+        display: none;
+      }
+
+      .flatpickr-innerContainer,
+      .flatpickr-rContainer,
+      .flatpickr-days,
+      .dayContainer {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+
+      .flatpickr-months {
+        padding: 4px 2px 8px;
+      }
+
+      .flatpickr-months .flatpickr-month {
+        height: 46px;
+        color: #7c2d12;
+      }
+
+      .flatpickr-current-month {
+        font-size: 15px;
+        font-weight: 900;
+        color: #7c2d12;
+        padding-top: 10px;
+      }
+
+      .flatpickr-current-month .flatpickr-monthDropdown-months {
+        background: transparent;
+        color: #7c2d12;
+        font-weight: 900;
+        border-radius: 8px;
+      }
+
+      .flatpickr-current-month .flatpickr-monthDropdown-months:hover {
+        background: #ffedd5;
+      }
+
+      .flatpickr-current-month input.cur-year {
+        color: #7c2d12;
+        font-weight: 900;
+      }
+
+      .numInputWrapper {
+        border-radius: 10px;
+      }
+
+      .numInputWrapper:hover {
+        background: #ffedd5;
+      }
+
+      .flatpickr-months .flatpickr-prev-month,
+      .flatpickr-months .flatpickr-next-month {
+        padding: 12px;
+        color: #c2410c;
+      }
+
+      .flatpickr-months .flatpickr-prev-month svg,
+      .flatpickr-months .flatpickr-next-month svg {
+        width: 16px;
+        height: 16px;
+        fill: #c2410c;
+        transition:
+          fill 0.16s ease,
+          transform 0.16s ease;
+      }
+
+      .flatpickr-months .flatpickr-prev-month:hover svg,
+      .flatpickr-months .flatpickr-next-month:hover svg {
+        fill: #9a3412;
+        transform: scale(1.08);
+      }
+
+      span.flatpickr-weekday {
+        color: #b45309;
+        font-weight: 800;
+        font-size: 12px;
+      }
+
+      .flatpickr-day {
+        border-radius: 11px;
+        color: #431407;
+        max-width: none;
+        height: 38px;
+        line-height: 36px;
+        transition:
+          background 0.15s ease,
+          color 0.15s ease,
+          border-color 0.15s ease;
+      }
+
+      .flatpickr-day.today {
+        border-color: #fb923c;
+        background: #fff7ed;
+        color: #c2410c;
+        font-weight: 900;
+      }
+
+      .flatpickr-day:hover {
+        background: #ffedd5;
+        border-color: #ffedd5;
+      }
+
+      .flatpickr-day.selected,
+      .flatpickr-day.startRange,
+      .flatpickr-day.endRange {
+        background: linear-gradient(135deg, #fb923c, #ea580c);
+        border-color: transparent;
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(234, 88, 12, 0.28);
+      }
+
+      .flatpickr-day.today.selected {
+        color: #fff;
+        border-color: transparent;
+      }
+
+      .flatpickr-day.prevMonthDay,
+      .flatpickr-day.nextMonthDay {
+        color: #d8b8a2;
+      }
+
+      .flatpickr-day.flatpickr-disabled {
+        color: #ead9cb;
+      }
+
+      /* 年月选择插件 */
+      .flatpickr-monthSelect-months {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        padding: 8px 2px 4px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .flatpickr-monthSelect-month {
+        border-radius: 13px;
+        border: 1px solid #f6dfc9;
+        background: #fff8f0;
+        color: #7c2d12;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 12px 0;
+        cursor: pointer;
+        transition:
+          background 0.16s ease,
+          border-color 0.16s ease,
+          transform 0.16s ease,
+          box-shadow 0.16s ease;
+      }
+
+      .flatpickr-monthSelect-month:hover {
+        background: #ffedd5;
+        border-color: #fdba74;
+        transform: translateY(-1px);
+      }
+
+      .flatpickr-monthSelect-theme-light .flatpickr-monthSelect-month.selected,
+      .flatpickr-monthSelect-month.selected {
+        background: linear-gradient(135deg, #fb923c, #ea580c) !important;
+        border-color: transparent !important;
+        color: #fff !important;
+        box-shadow: 0 10px 22px rgba(234, 88, 12, 0.25);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <span class="badge">🍑 Flatpickr · 单文件暖色示例</span>
+        <h1>暖色日期选择器</h1>
+        <p class="subtitle">
+          包含「具体年月日」与「年月」两种选择场景。页面展示为中文友好格式，隐藏输入框中保留适合后端提交的
+          ISO 格式。
+        </p>
+      </section>
+
+      <div id="cdnError" class="error" hidden>
+        Flatpickr 或 monthSelect 插件资源加载失败。请检查网络，或确认 CDN
+        是否可访问。
+      </div>
+
+      <section class="grid">
+        <article class="panel">
+          <div class="panel-head">
+            <div class="panel-icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="3"></rect>
+                <path d="M8 3v4M16 3v4M3 10h18"></path>
+              </svg>
+            </div>
+            <div>
+              <h2>具体年月日</h2>
+              <p>选择完整日期，隐藏值格式：<strong>YYYY-MM-DD</strong></p>
+            </div>
+          </div>
+
+          <div class="control" id="dateControl">
+            <span class="icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="3"></rect>
+                <path d="M8 3v4M16 3v4M3 10h18"></path>
+              </svg>
+            </span>
+
+            <input
+              id="datePicker"
+              name="date"
+              autocomplete="off"
+              placeholder="请选择具体日期"
+              aria-label="具体年月日"
+            />
+
+            <span class="chev" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.1"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m6 9 6 6 6-6"></path>
+              </svg>
+            </span>
+          </div>
+
+          <div class="status empty" id="dateStatus">
+            <div>
+              <span class="status-label">当前选择</span>
+              <strong id="dateResult">尚未选择日期</strong>
+            </div>
+            <div class="status-actions">
+              <button type="button" class="ghost-btn" id="dateToday">
+                今天
+              </button>
+              <button type="button" class="ghost-btn warn" id="dateClear">
+                清空
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div class="panel-icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="3"></rect>
+                <path d="M8 3v4M16 3v4M3 10h18"></path>
+                <path d="M8 15h4"></path>
+              </svg>
+            </div>
+            <div>
+              <h2>年月选择</h2>
+              <p>只选择年月，隐藏值格式：<strong>YYYY-MM</strong></p>
+            </div>
+          </div>
+
+          <div class="control" id="monthControl">
+            <span class="icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="3"></rect>
+                <path d="M8 3v4M16 3v4M3 10h18"></path>
+                <path d="M8 15h4"></path>
+              </svg>
+            </span>
+
+            <input
+              id="monthPicker"
+              name="month"
+              autocomplete="off"
+              placeholder="请选择年月"
+              aria-label="年月选择"
+            />
+
+            <span class="chev" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.1"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m6 9 6 6 6-6"></path>
+              </svg>
+            </span>
+          </div>
+
+          <div class="status empty" id="monthStatus">
+            <div>
+              <span class="status-label">当前选择</span>
+              <strong id="monthResult">尚未选择年月</strong>
+            </div>
+            <div class="status-actions">
+              <button type="button" class="ghost-btn" id="monthNow">
+                本月
+              </button>
+              <button type="button" class="ghost-btn warn" id="monthClear">
+                清空
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel summary">
+          <div class="panel-head">
+            <div class="panel-icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m8 6-5 6 5 6"></path>
+                <path d="m16 6 5 6-5 6"></path>
+              </svg>
+            </div>
+            <div>
+              <h2>当前选择结果</h2>
+              <p>下方为实时更新的提交值，可直接用于表单或接口参数。</p>
+            </div>
+          </div>
+
+          <pre id="output" class="code">
+{
+  "date": "",
+  "month": ""
+}</pre
+          >
+        </article>
+      </section>
+
+      <footer class="foot">
+        隐藏输入框 <code>name="date"</code> 与
+        <code>name="month"</code> 会随表单提交。<br />
+        显示文本为中文格式，提交值保持 <code>YYYY-MM-DD</code> /
+        <code>YYYY-MM</code>。
+      </footer>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/zh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/plugins/monthSelect/index.js"></script>
+
+    <script>
+      (function () {
+        const errorEl = document.getElementById("cdnError");
+
+        if (!window.flatpickr || !window.monthSelectPlugin) {
+          if (errorEl) errorEl.hidden = false;
+          return;
+        }
+
+        if (window.flatpickr.l10ns && flatpickr.l10ns.zh) {
+          flatpickr.localize(flatpickr.l10ns.zh);
+        }
+
+        const els = {
+          output: document.getElementById("output"),
+          dateStatus: document.getElementById("dateStatus"),
+          dateResult: document.getElementById("dateResult"),
+          monthStatus: document.getElementById("monthStatus"),
+          monthResult: document.getElementById("monthResult"),
+        };
+
+        let dateValue = "";
+        let monthValue = "";
+        let dateFp = null;
+        let monthFp = null;
+
+        function cnDate(date) {
+          if (!date) return "";
+          return (
+            date.getFullYear() +
+            "年" +
+            (date.getMonth() + 1) +
+            "月" +
+            date.getDate() +
+            "日"
+          );
+        }
+
+        function cnMonth(date) {
+          if (!date) return "";
+          return date.getFullYear() + "年" + (date.getMonth() + 1) + "月";
+        }
+
+        function updateOutput() {
+          if (!els.output) return;
+          els.output.textContent = JSON.stringify(
+            {
+              date: dateValue || "",
+              month: monthValue || "",
+            },
+            null,
+            2,
+          );
+        }
+
+        function prepareInput(instance, placeholder) {
+          const alt = instance.altInput;
+
+          if (alt) {
+            alt.removeAttribute("id");
+            alt.removeAttribute("name");
+            alt.classList.add("picker-input");
+            alt.placeholder = placeholder;
+            alt.readOnly = true;
+          } else if (instance.input) {
+            instance.input.classList.add("picker-input");
+            instance.input.placeholder = placeholder;
+            instance.input.readOnly = true;
+          }
+        }
+
+        function refreshDate(selectedDates, dateStr, instance) {
+          const date = selectedDates && selectedDates[0];
+
+          dateValue = instance && instance.input ? instance.input.value : "";
+
+          if (date) {
+            els.dateResult.textContent = cnDate(date);
+            els.dateStatus.classList.remove("empty");
+          } else {
+            els.dateResult.textContent = "尚未选择日期";
+            els.dateStatus.classList.add("empty");
+          }
+
+          updateOutput();
+        }
+
+        function refreshMonth(selectedDates, dateStr, instance) {
+          const date = selectedDates && selectedDates[0];
+
+          monthValue = instance && instance.input ? instance.input.value : "";
+
+          if (date) {
+            els.monthResult.textContent = cnMonth(date);
+            els.monthStatus.classList.remove("empty");
+          } else {
+            els.monthResult.textContent = "尚未选择年月";
+            els.monthStatus.classList.add("empty");
+          }
+
+          updateOutput();
+        }
+
+        function closeOthers(current) {
+          [dateFp, monthFp].forEach(function (fp) {
+            if (fp && fp !== current && fp.isOpen) {
+              fp.close();
+            }
+          });
+        }
+
+        dateFp = flatpickr("#datePicker", {
+          dateFormat: "Y-m-d",
+          altInput: true,
+          altFormat: "Y年n月j日",
+          defaultDate: new Date(),
+          disableMobile: true,
+          allowInput: false,
+          positionElement: document.getElementById("dateControl"),
+          onReady: function (selectedDates, dateStr, instance) {
+            prepareInput(instance, "请选择具体日期");
+            refreshDate(selectedDates, dateStr, instance);
+          },
+          onChange: refreshDate,
+          onOpen: function (selectedDates, dateStr, instance) {
+            closeOthers(instance);
+          },
+        });
+
+        monthFp = flatpickr("#monthPicker", {
+          defaultDate: new Date(),
+          disableMobile: true,
+          allowInput: false,
+          positionElement: document.getElementById("monthControl"),
+          plugins: [
+            monthSelectPlugin({
+              shorthand: false,
+              dateFormat: "Y-m",
+              altFormat: "Y年n月",
+              theme: "light",
+            }),
+          ],
+          onReady: function (selectedDates, dateStr, instance) {
+            prepareInput(instance, "请选择年月");
+            refreshMonth(selectedDates, dateStr, instance);
+          },
+          onChange: refreshMonth,
+          onOpen: function (selectedDates, dateStr, instance) {
+            closeOthers(instance);
+          },
+        });
+
+        document
+          .getElementById("dateToday")
+          .addEventListener("click", function () {
+            dateFp.setDate(new Date(), true);
+          });
+
+        document
+          .getElementById("dateClear")
+          .addEventListener("click", function () {
+            dateFp.clear(true);
+          });
+
+        document
+          .getElementById("monthNow")
+          .addEventListener("click", function () {
+            monthFp.setDate(new Date(), true);
+          });
+
+        document
+          .getElementById("monthClear")
+          .addEventListener("click", function () {
+            monthFp.clear(true);
+          });
+      })();
+    </script>
+  </body>
+</html>

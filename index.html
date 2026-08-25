@@ -265,7 +265,9 @@
         animation: blink 1s steps(1) infinite;
       }
       @keyframes blink {
-        50% { opacity: 0.15; }
+        50% {
+          opacity: 0.15;
+        }
       }
 
       /* ── Terminal ── */
@@ -295,12 +297,18 @@
         justify-content: center;
         font-size: 7px;
         font-weight: 700;
-        color: rgba(0,0,0,0.5);
+        color: rgba(0, 0, 0, 0.5);
         line-height: 1;
       }
-      .t-dot.r { background: #ff5f57; }
-      .t-dot.y { background: #febc2e; }
-      .t-dot.g { background: #28c840; }
+      .t-dot.r {
+        background: #ff5f57;
+      }
+      .t-dot.y {
+        background: #febc2e;
+      }
+      .t-dot.g {
+        background: #28c840;
+      }
       .t-title {
         margin-left: 8px;
         font-family: "SF Mono", "Fira Code", "JetBrains Mono", monospace;
@@ -336,12 +344,23 @@
         color: #28c840;
         margin-right: 10px;
       }
-      .t-line .ok { color: #28c840; }
-      .t-line .run { color: #febc2e; }
-      .t-line .warn { color: #ff5f57; }
-      .t-line .dim { color: #666; }
+      .t-line .ok {
+        color: #28c840;
+      }
+      .t-line .run {
+        color: #febc2e;
+      }
+      .t-line .warn {
+        color: #ff5f57;
+      }
+      .t-line .dim {
+        color: #666;
+      }
       @keyframes lineIn {
-        from { opacity: 0; transform: translateX(-8px); }
+        from {
+          opacity: 0;
+          transform: translateX(-8px);
+        }
       }
       .t-foot {
         display: flex;
@@ -410,7 +429,9 @@
         padding: 2rem;
         text-decoration: none;
         color: var(--ink);
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
         position: relative;
         overflow: hidden;
       }
@@ -449,6 +470,9 @@
       }
       .card:nth-child(3) {
         background: var(--paper-alt);
+      }
+      .card:nth-child(4) {
+        background: #e8f4fd;
       }
 
       .card-icon {
@@ -524,7 +548,9 @@
         box-shadow: 2px 2px 0px 0px rgba(26, 26, 26, 1);
         opacity: 0;
         transform: translate(-4px, 4px);
-        transition: opacity 0.15s ease, transform 0.15s ease;
+        transition:
+          opacity 0.15s ease,
+          transform 0.15s ease;
       }
       .card:hover .card-arrow {
         opacity: 1;
@@ -569,7 +595,9 @@
         border: 3px solid var(--paper);
         border-radius: 6px;
         box-shadow: 3px 3px 0px 0px rgba(255, 255, 255, 0.2);
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
         text-transform: uppercase;
         letter-spacing: 0.05em;
       }
@@ -616,12 +644,17 @@
 
       /* ── Reduced Motion ── */
       @media (prefers-reduced-motion: reduce) {
-        *, *::before, *::after {
+        *,
+        *::before,
+        *::after {
           animation-duration: 0.01ms !important;
           animation-iteration-count: 1 !important;
           transition-duration: 0.01ms !important;
         }
-        .cur-dot, .cur-ring { display: none; }
+        .cur-dot,
+        .cur-ring {
+          display: none;
+        }
       }
     </style>
   </head>
@@ -632,9 +665,7 @@
 
     <nav>
       <div class="nav-inner">
-        <a href="/" class="logo">
-          <span class="logo-bang">!</span>vibe-page
-        </a>
+        <a href="/" class="logo"> <span class="logo-bang">!</span>vibe-page </a>
         <span class="nav-meta">作品集 / PORTFOLIO</span>
       </div>
     </nav>
@@ -661,8 +692,10 @@
         <!-- Terminal -->
         <div class="terminal">
           <div class="t-head">
-            <span class="t-dot r">&times;</span><span class="t-dot y">&minus;</span><span class="t-dot g">+</span>
-            <span class="t-title">generator.log</span><span class="t-rec">● REC</span>
+            <span class="t-dot r">&times;</span
+            ><span class="t-dot y">&minus;</span><span class="t-dot g">+</span>
+            <span class="t-title">generator.log</span
+            ><span class="t-rec">● REC</span>
           </div>
           <div class="t-body" id="term"></div>
           <div class="t-foot">
@@ -677,7 +710,7 @@
       <div class="grid-inner">
         <div class="section-header">
           <span class="section-title">所有作品</span>
-          <span class="section-count">03 ITEMS</span>
+          <span class="section-count">04 ITEMS</span>
         </div>
         <div class="card-grid">
           <a class="card" href="recruitment-timeline-2026.html" target="_blank">
@@ -707,6 +740,16 @@
             <h2 class="card-title">模室 ModelTea</h2>
             <p class="card-desc">大模型茶饮店，创意交互式网页体验。</p>
             <span class="card-tag">Qwen3.8-Max-Preview</span>
+          </a>
+          <a class="card" href="de-playground.html" target="_blank">
+            <div class="card-arrow">&rarr;</div>
+            <span class="card-num">No.04</span>
+            <div class="card-icon">&#128187;</div>
+            <h2 class="card-title">桌面环境体验场</h2>
+            <p class="card-desc">
+              DE Playground — 桌面环境交互体验场，模拟显示管理器与会话切换。
+            </p>
+            <span class="card-tag">Qwen3.8-Max</span>
           </a>
         </div>
       </div>
@@ -761,17 +804,14 @@
           requestAnimationFrame(loop);
         })();
         document.addEventListener("mouseover", (e) => {
-          ring.classList.toggle(
-            "big",
-            !!e.target.closest("a,button,.card")
-          );
+          ring.classList.toggle("big", !!e.target.closest("a,button,.card"));
         });
       }
 
       /* ── Terminal Log ── */
       const LOGS = [
         ["ok", "$ vibe init vibe-page"],
-        ["ok", "解析提示词 → \"漫画风格作品集、粗墨线、网点填充\""],
+        ["ok", '解析提示词 → "漫画风格作品集、粗墨线、网点填充"'],
         ["run", "生成布局 ████████░░ 82%"],
         ["ok", "注入风格层 comic-style.css"],
         ["ok", "配色采样：#fffef0 / #ff0044 / #0066ff"],
@@ -792,7 +832,7 @@
         const [type, text] = LOGS[li % LOGS.length];
         termEl.insertAdjacentHTML(
           "beforeend",
-          `<p class="t-line"><span class="sym">❯</span>${PRE[type]} ${text}</p>`
+          `<p class="t-line"><span class="sym">❯</span>${PRE[type]} ${text}</p>`,
         );
         while (termEl.children.length > 8) termEl.firstElementChild.remove();
         li++;
@@ -800,10 +840,11 @@
 
       /* ── Typewriter ── */
       const PROMPTS = [
-        '生成一个漫画风格的作品集页面，粗墨线边框、网点填充',
-        '做一个秋招时间轴，带动画效果的招聘时间线',
+        "生成一个漫画风格的作品集页面，粗墨线边框、网点填充",
+        "做一个秋招时间轴，带动画效果的招聘时间线",
         "生成一个暖色风格的 Flatpickr 日期选择器组件",
         "做一个大模型茶饮店的创意交互页面",
+        "生成一个桌面环境体验场，模拟显示管理器与会话切换",
       ];
       const typedEl = document.getElementById("typed");
       (async function typeLoop() {

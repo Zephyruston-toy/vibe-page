@@ -25,6 +25,7 @@ When adding a new HTML file to the portfolio, update **all** of the following:
 | 招聘时间轴、动画类页面 | deepseek-v4-pro     |
 | 组件（日期选择器等）   | Qwen3.8-Max-Preview |
 | 创意/趣味页面          | Qwen3.8-Max-Preview |
+| 桌面环境体验类页面     | Qwen3.8-Max         |
 
 ## Style Kit
 

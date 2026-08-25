@@ -1,0 +1,4266 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>桌面环境体验场 · DE Playground</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --disp: "Chakra Petch", "PingFang SC", "Microsoft YaHei", sans-serif;
+        --body: "IBM Plex Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+        --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+        --bg: #0a0d12;
+        --ink: #dfe6ee;
+        --dim: #8b98a8;
+        --line: #222b37;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--body);
+        overflow: hidden;
+        font-size: 14px;
+      }
+      kbd {
+        font-family: var(--mono);
+        font-size: 0.82em;
+        background: #1a212b;
+        border: 1px solid #33405177;
+        border-bottom-width: 2px;
+        border-radius: 5px;
+        padding: 1px 6px;
+        color: #bcd0e6;
+      }
+      button {
+        font-family: inherit;
+        cursor: pointer;
+      }
+      ::-webkit-scrollbar {
+        width: 9px;
+        height: 9px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #33405188;
+        border-radius: 5px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      /* ============ 显示管理器（选择界面） ============ */
+      #dm {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        z-index: 5;
+      }
+      .dm-bg {
+        position: absolute;
+        inset: 0;
+        background:
+          repeating-linear-gradient(0deg, transparent 0 3px, #ffffff05 3px 4px),
+          radial-gradient(1000px 600px at 78% 18%, #16324a55, transparent 65%),
+          radial-gradient(800px 500px at 12% 85%, #0e3a2f44, transparent 60%),
+          linear-gradient(155deg, #0c1118, #090c11 55%, #0b1017);
+      }
+      .dm-bg::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(#ffffff04 1px, transparent 1px),
+          linear-gradient(90deg, #ffffff04 1px, transparent 1px);
+        background-size: 44px 44px;
+        mask: radial-gradient(120% 90% at 50% 40%, #000 40%, transparent 90%);
+        animation: gridDrift 40s linear infinite;
+      }
+      @keyframes gridDrift {
+        to {
+          background-position:
+            44px 88px,
+            88px 44px;
+        }
+      }
+      .dm-top,
+      .dm-foot {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 26px;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: #5f7186;
+      }
+      .dm-top b {
+        color: #8fb7df;
+        font-weight: 400;
+      }
+      .dm-main {
+        position: relative;
+        flex: 1;
+        display: grid;
+        grid-template-columns: minmax(360px, 460px) 1fr;
+        gap: 40px;
+        padding: 8px 56px 20px;
+        min-height: 0;
+      }
+      .dm-left {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+      .dm-bigclock {
+        font-family: var(--disp);
+        font-weight: 700;
+        font-size: clamp(56px, 7vw, 88px);
+        line-height: 1;
+        letter-spacing: 2px;
+        color: #eaf2fb;
+        text-shadow: 0 0 34px #3d8ecf33;
+      }
+      .dm-bigclock small {
+        font-size: 0.42em;
+        color: #7d93ab;
+        font-weight: 600;
+        margin-left: 12px;
+        letter-spacing: 3px;
+      }
+      #bigDate {
+        font-family: var(--mono);
+        color: #71889f;
+        font-size: 13px;
+        margin: 8px 0 22px;
+      }
+      .dm-title {
+        font-family: var(--disp);
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+      .dm-title em {
+        font-style: normal;
+        color: #57b6ff;
+      }
+      .dm-sub {
+        color: #7c8ea1;
+        font-size: 13px;
+        margin: 6px 0 16px;
+      }
+      #sessList {
+        flex: 1;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #0d121999;
+        backdrop-filter: blur(4px);
+        padding: 6px;
+      }
+      .si {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 9px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        border-left: 3px solid transparent;
+        transition:
+          background 0.15s,
+          transform 0.15s;
+      }
+      .si:hover {
+        background: #16202c;
+      }
+      .si.on {
+        background: #14233488;
+        border-left-color: var(--a);
+        transform: translateX(3px);
+      }
+      .si-ic {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        font-family: var(--mono);
+        font-weight: 700;
+        font-size: 13px;
+        color: #0b0e12;
+        background: var(--a);
+        flex: none;
+        box-shadow: 0 0 16px -4px var(--a);
+      }
+      .si-tx {
+        flex: 1;
+        min-width: 0;
+      }
+      .si-tx b {
+        display: block;
+        font-family: var(--disp);
+        letter-spacing: 0.5px;
+        font-size: 15px;
+      }
+      .si-tx span {
+        font-size: 12px;
+        color: #7c8ea1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+      }
+      .si-tag {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: #6f8299;
+        border: 1px solid #2a3644;
+        border-radius: 4px;
+        padding: 2px 6px;
+        flex: none;
+      }
+      .dm-right {
+        display: flex;
+        align-items: center;
+        min-height: 0;
+      }
+      #dmDetail {
+        width: 100%;
+        max-width: 640px;
+        max-height: 100%;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: linear-gradient(170deg, #0e141c, #0b0f15);
+        padding: 26px 30px;
+        box-shadow: 0 30px 80px -30px #000;
+      }
+      .d-badge {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--a);
+        border: 1px solid color-mix(in srgb, var(--a) 45%, transparent);
+        border-radius: 4px;
+        padding: 3px 8px;
+        letter-spacing: 1px;
+      }
+      #dmDetail h2 {
+        font-family: var(--disp);
+        font-size: clamp(30px, 3.4vw, 44px);
+        letter-spacing: 1px;
+        margin: 12px 0 2px;
+      }
+      .d-cn {
+        color: #8fa2b6;
+        font-size: 14px;
+      }
+      .pv {
+        position: relative;
+        height: 170px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 18px 0;
+        border: 1px solid #223041;
+        box-shadow: inset 0 0 60px #0007;
+      }
+      .pv-bar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 12px;
+        background: #00000072;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 0 6px;
+      }
+      .pv-bar.t {
+        top: 0;
+      }
+      .pv-bar.b {
+        bottom: 0;
+      }
+      .pv-bar i {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--a);
+      }
+      .pv-w {
+        position: absolute;
+        border-radius: 4px;
+        background: #ffffff14;
+        border: 1px solid #ffffff30;
+        box-shadow: 0 8px 20px #0006;
+        animation: pvFloat 4s ease-in-out infinite;
+      }
+      .pv-w.f {
+        border-color: var(--a);
+        background: #ffffff1f;
+      }
+      @keyframes pvFloat {
+        50% {
+          transform: translateY(-4px);
+        }
+      }
+      .pv-tile {
+        position: absolute;
+        background: #ffffff10;
+        border: 1.5px solid #ffffff28;
+        border-radius: 2px;
+      }
+      .pv-tile.f {
+        border-color: var(--a);
+      }
+      .pv-cur {
+        position: absolute;
+        width: 6px;
+        height: 10px;
+        background: var(--a);
+        animation: blink 1s steps(2) infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+      .d-desc {
+        color: #aebccb;
+        font-size: 13.5px;
+        line-height: 1.75;
+        margin-bottom: 16px;
+      }
+      .d-facts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 26px;
+        margin-bottom: 16px;
+      }
+      .d-facts div {
+        display: flex;
+        gap: 10px;
+        font-size: 12.5px;
+        border-bottom: 1px dashed #1f2a37;
+        padding: 5px 0;
+      }
+      .d-facts dt {
+        color: #68798d;
+        font-family: var(--mono);
+        flex: none;
+        width: 64px;
+      }
+      .d-facts dd {
+        color: #c3d0dd;
+      }
+      .d-keys {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+      .d-keys span {
+        font-size: 12px;
+        color: #93a5b8;
+        background: #131b25;
+        border: 1px solid #243141;
+        border-radius: 6px;
+        padding: 4px 9px;
+      }
+      .login {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        justify-content: center;
+        font-family: var(--disp);
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        color: #081018;
+        background: var(--a);
+        border: none;
+        border-radius: 9px;
+        padding: 13px;
+        transition:
+          filter 0.15s,
+          transform 0.15s;
+        box-shadow: 0 10px 30px -10px var(--a);
+      }
+      .login:hover {
+        filter: brightness(1.12);
+        transform: translateY(-2px);
+      }
+      .dm-foot {
+        border-top: 1px solid #16202b;
+        background: #090d12aa;
+      }
+      #bootlog {
+        color: #4f7d5f;
+      }
+
+      /* ============ 会话通用 ============ */
+      #session {
+        position: fixed;
+        inset: 0;
+        display: none;
+      }
+      #session.on {
+        display: block;
+      }
+      .wp {
+        position: absolute;
+        inset: 0;
+        background-size: 130% 130%;
+        animation: wpDrift 46s ease-in-out infinite alternate;
+      }
+      @keyframes wpDrift {
+        to {
+          background-position: 70% 60%;
+        }
+      }
+      .work {
+        position: absolute;
+        overflow: hidden;
+      }
+      .chips {
+        position: absolute;
+        right: 12px;
+        display: flex;
+        gap: 8px;
+        z-index: 1000;
+      }
+      .chip {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: #cfd9e4;
+        background: #000000a6;
+        border: 1px solid #ffffff26;
+        border-radius: 20px;
+        padding: 6px 13px;
+        backdrop-filter: blur(6px);
+        transition:
+          background 0.15s,
+          transform 0.15s;
+      }
+      .chip:hover {
+        background: #000000e0;
+        transform: translateY(-1px);
+      }
+      .toast {
+        position: absolute;
+        left: 50%;
+        bottom: 86px;
+        transform: translateX(-50%);
+        background: #000c;
+        color: #e8eef5;
+        border: 1px solid #ffffff2c;
+        border-radius: 8px;
+        padding: 9px 18px;
+        font-size: 13px;
+        z-index: 1300;
+        animation: toastIn 0.2s ease-out;
+        pointer-events: none;
+      }
+      @keyframes toastIn {
+        from {
+          opacity: 0;
+          transform: translate(-50%, 8px);
+        }
+      }
+      .intro {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: #00000088;
+        z-index: 1400;
+        cursor: pointer;
+      }
+      .intro-in {
+        text-align: center;
+        animation: introIn 0.5s ease-out;
+      }
+      @keyframes introIn {
+        from {
+          opacity: 0;
+          transform: scale(0.94);
+        }
+      }
+      .intro-in h1 {
+        font-family: var(--disp);
+        font-size: clamp(44px, 6vw, 72px);
+        letter-spacing: 3px;
+        text-shadow: 0 6px 40px #000;
+      }
+      .intro-in p {
+        color: #cdd8e4;
+        margin-top: 8px;
+        font-size: 15px;
+      }
+      .intro-in .tags {
+        margin-top: 16px;
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+      }
+      .intro-in .tags span {
+        font-family: var(--mono);
+        font-size: 11px;
+        background: #ffffff14;
+        border: 1px solid #ffffff2c;
+        border-radius: 5px;
+        padding: 4px 10px;
+      }
+
+      /* 面板 */
+      .panel {
+        position: absolute;
+        left: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 8px;
+        z-index: 800;
+        font-size: 12.5px;
+        backdrop-filter: blur(10px);
+      }
+      .panel.top {
+        top: 0;
+      }
+      .panel.bottom {
+        bottom: 0;
+      }
+      .pbtn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: transparent;
+        border: none;
+        color: inherit;
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-size: 12.5px;
+        transition: background 0.13s;
+      }
+      .pbtn:hover {
+        background: #ffffff1c;
+      }
+      .pbtn.act {
+        background: #ffffff24;
+      }
+      .clock {
+        font-family: var(--mono);
+        white-space: nowrap;
+      }
+      .clock span {
+        opacity: 0.75;
+        margin-left: 6px;
+        font-size: 11px;
+      }
+      .task {
+        flex: 1;
+        display: flex;
+        gap: 4px;
+        overflow: hidden;
+        padding: 0 4px;
+      }
+      .task button {
+        max-width: 170px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        background: #ffffff10;
+        border: 1px solid transparent;
+        color: inherit;
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        transition: background 0.13s;
+      }
+      .task button:hover {
+        background: #ffffff22;
+      }
+      .task button.act {
+        background: #ffffff28;
+        border-color: var(--acc);
+      }
+      .spacer {
+        flex: 1;
+      }
+      .tray {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+      }
+
+      /* 窗口 */
+      .win {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        background: var(--winbg);
+        color: var(--winfg);
+        border-radius: var(--rad);
+        box-shadow:
+          0 14px 44px -8px #000a,
+          0 0 0 1px #ffffff14;
+        animation: winIn 0.17s ease-out;
+        overflow: hidden;
+        min-width: 260px;
+      }
+      @keyframes winIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95) translateY(10px);
+        }
+      }
+      .win.focused {
+        box-shadow:
+          0 22px 60px -10px #000c,
+          0 0 0 2px var(--acc);
+      }
+      .tlb {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 36px;
+        padding: 0 10px;
+        background: var(--tlb);
+        color: var(--tlbfg);
+        flex: none;
+        cursor: grab;
+        user-select: none;
+      }
+      .tlb:active {
+        cursor: grabbing;
+      }
+      .tlb .tt {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-size: 12.5px;
+        font-weight: 500;
+      }
+      .tlb .tico {
+        font-size: 14px;
+      }
+      .wbtn {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: none;
+        background: #ffffff22;
+        color: inherit;
+        font-size: 11px;
+        line-height: 1;
+        display: grid;
+        place-items: center;
+        transition: background 0.12s;
+        flex: none;
+      }
+      .wbtn:hover {
+        background: #ffffff44;
+      }
+      .wbtn.x:hover {
+        background: #e0524a;
+        color: #fff;
+      }
+      .wbody {
+        flex: 1;
+        overflow: auto;
+        position: relative;
+      }
+      /* i3/sway 平铺条 */
+      .tile-strip .tlb {
+        height: 22px;
+        font-family: var(--mono);
+        font-size: 11px;
+        border-radius: 0;
+        background: #1c2127;
+        color: #98a4b3;
+        cursor: default;
+      }
+      .tile-strip.focused .tlb {
+        background: var(--acc);
+        color: #fff;
+      }
+      .tile-strip .wbtn {
+        display: none;
+      }
+
+      /* 菜单 / 弹层 */
+      .popup {
+        position: absolute;
+        z-index: 950;
+        animation: popIn 0.16s ease-out;
+        border-radius: 10px;
+        box-shadow: 0 24px 70px -12px #000d;
+      }
+      @keyframes popIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px) scale(0.98);
+        }
+      }
+      .menu {
+        background: #101419f5;
+        border: 1px solid #ffffff1e;
+        backdrop-filter: blur(14px);
+        color: #dde5ee;
+        width: 380px;
+      }
+      .menu.light {
+        background: #f2f4f7f8;
+        color: #252c34;
+        border-color: #00000022;
+      }
+      .m-search {
+        margin: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #ffffff12;
+        border: 1px solid #ffffff22;
+        border-radius: 7px;
+        padding: 7px 10px;
+      }
+      .menu.light .m-search {
+        background: #0000000d;
+        border-color: #00000022;
+      }
+      .m-search input {
+        flex: 1;
+        background: none;
+        border: none;
+        outline: none;
+        color: inherit;
+        font-size: 13px;
+      }
+      .m-cols {
+        display: flex;
+        min-height: 250px;
+      }
+      .m-cats {
+        width: 120px;
+        border-right: 1px solid #ffffff14;
+        padding: 6px;
+      }
+      .menu.light .m-cats {
+        border-color: #00000015;
+      }
+      .m-cats div {
+        padding: 7px 10px;
+        border-radius: 6px;
+        font-size: 12.5px;
+        color: #9fb0c2;
+        cursor: default;
+      }
+      .m-cats div.on {
+        background: #ffffff16;
+        color: #fff;
+      }
+      .menu.light .m-cats div.on {
+        background: #00000012;
+        color: #111;
+      }
+      .m-apps {
+        flex: 1;
+        padding: 6px;
+        max-height: 300px;
+        overflow: auto;
+      }
+      .m-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
+        color: inherit;
+        padding: 8px 10px;
+        border-radius: 7px;
+        font-size: 13px;
+        transition: background 0.12s;
+      }
+      .m-item:hover {
+        background: #ffffff18;
+      }
+      .menu.light .m-item:hover {
+        background: #00000010;
+      }
+      .m-item .mi {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: #ffffff14;
+        display: grid;
+        place-items: center;
+        font-size: 14px;
+        flex: none;
+      }
+      .m-item small {
+        margin-left: auto;
+        color: #75879b;
+        font-size: 10.5px;
+        font-family: var(--mono);
+      }
+      .m-foot {
+        border-top: 1px solid #ffffff16;
+        padding: 6px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .m-foot button {
+        background: none;
+        border: none;
+        color: #9fb0c2;
+        font-size: 12px;
+        padding: 6px 10px;
+        border-radius: 6px;
+      }
+      .m-foot button:hover {
+        background: #ffffff16;
+        color: #fff;
+      }
+      .m-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        padding: 10px;
+      }
+      .m-grid button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 7px;
+        background: none;
+        border: none;
+        color: inherit;
+        padding: 12px 6px;
+        border-radius: 9px;
+        font-size: 12px;
+        transition:
+          background 0.12s,
+          transform 0.12s;
+      }
+      .m-grid button:hover {
+        background: #ffffff16;
+        transform: translateY(-2px);
+      }
+      .m-grid .gi {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(150deg, #ffffff22, #ffffff08);
+        display: grid;
+        place-items: center;
+        font-size: 21px;
+        box-shadow: inset 0 0 0 1px #ffffff1e;
+      }
+
+      /* 全屏 overlay */
+      .ov {
+        position: absolute;
+        inset: 0;
+        z-index: 900;
+        animation: ovIn 0.18s ease-out;
+      }
+      @keyframes ovIn {
+        from {
+          opacity: 0;
+        }
+      }
+      .gnome-ov {
+        background: #0b0e14d8;
+        backdrop-filter: blur(18px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 56px;
+      }
+      .ov-search {
+        width: min(560px, 80%);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        background: #ffffff10;
+        border: 1px solid #ffffff2a;
+        border-radius: 10px;
+        padding: 11px 16px;
+        color: #fff;
+      }
+      .ov-search input {
+        flex: 1;
+        background: none;
+        border: none;
+        outline: none;
+        color: #fff;
+        font-size: 15px;
+      }
+      .clones {
+        flex: 1;
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 22px;
+        justify-content: center;
+        align-content: center;
+        padding: 30px 120px;
+      }
+      .clone {
+        width: 230px;
+        cursor: pointer;
+        transition: transform 0.15s;
+      }
+      .clone:hover {
+        transform: scale(1.05);
+      }
+      .clone .c-tlb {
+        height: 26px;
+        border-radius: 8px 8px 0 0;
+        background: var(--tlb);
+        color: var(--tlbfg);
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
+        font-size: 11px;
+        gap: 6px;
+      }
+      .clone .c-body {
+        height: 130px;
+        border-radius: 0 0 8px 8px;
+        background: var(--winbg);
+        box-shadow: 0 16px 40px -8px #000;
+        border: 1px solid #ffffff22;
+        display: grid;
+        place-items: center;
+        font-size: 34px;
+        color: #ffffff44;
+      }
+      .empty-hint {
+        color: #7d8ea3;
+        font-size: 15px;
+        text-align: center;
+        line-height: 2;
+      }
+      .ws-row {
+        display: flex;
+        gap: 12px;
+        padding: 20px;
+      }
+      .ws-row div {
+        width: 86px;
+        height: 52px;
+        border-radius: 9px;
+        border: 2px solid #ffffff30;
+        background: #ffffff0d;
+        display: grid;
+        place-items: center;
+        font-family: var(--mono);
+        color: #aebccb;
+        cursor: pointer;
+        transition: all 0.14s;
+      }
+      .ws-row div:hover {
+        border-color: #ffffff70;
+      }
+      .ws-row div.on {
+        border-color: var(--acc);
+        background: #ffffff1c;
+        color: #fff;
+      }
+      .ov-dock {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .ov-dock button {
+        position: relative;
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        border: none;
+        background: #ffffff12;
+        color: #fff;
+        font-size: 22px;
+        transition:
+          background 0.13s,
+          transform 0.13s;
+      }
+      .ov-dock button:hover {
+        background: #ffffff2c;
+        transform: scale(1.08);
+      }
+      .ov-dock button.run::after {
+        content: "";
+        position: absolute;
+        left: -9px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 16px;
+        border-radius: 3px;
+        background: var(--acc);
+      }
+      .appgrid {
+        position: absolute;
+        inset: 0;
+        background: #0b0e14ee;
+        backdrop-filter: blur(18px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 70px;
+        z-index: 920;
+      }
+      .appgrid .m-grid {
+        grid-template-columns: repeat(6, 92px);
+        gap: 18px;
+        max-width: 700px;
+      }
+      .dmenu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        background: #14171c;
+        border-bottom: 2px solid var(--acc);
+        z-index: 960;
+        display: flex;
+        flex-direction: column;
+        font-family: var(--mono);
+      }
+      .dmenu input {
+        background: #0d0f13;
+        border: none;
+        outline: none;
+        color: #e6edf3;
+        padding: 12px 18px;
+        font-family: var(--mono);
+        font-size: 15px;
+      }
+      .dmenu .dl {
+        padding: 9px 18px;
+        color: #aeb8c4;
+        cursor: pointer;
+        display: flex;
+        gap: 12px;
+      }
+      .dmenu .dl.sel,
+      .dmenu .dl:hover {
+        background: #285577;
+        color: #fff;
+      }
+      .wofi {
+        position: absolute;
+        left: 50%;
+        top: 18%;
+        transform: translateX(-50%);
+        width: 440px;
+        background: #0e151cf2;
+        border: 1px solid #2dd4bf44;
+        border-radius: 14px;
+        z-index: 960;
+        font-family: var(--mono);
+        box-shadow: 0 30px 80px #000c;
+        animation: popIn 0.15s ease-out;
+      }
+      .raven {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 350px;
+        background: #0d1117f2;
+        border-left: 1px solid #ffffff1e;
+        backdrop-filter: blur(16px);
+        z-index: 890;
+        display: flex;
+        flex-direction: column;
+        animation: ravenIn 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
+      }
+      @keyframes ravenIn {
+        from {
+          transform: translateX(100%);
+        }
+      }
+      .cal {
+        padding: 14px 18px;
+        border-bottom: 1px solid #ffffff14;
+      }
+      .cal .ch {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+      .cal .cg {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 3px;
+        font-size: 11.5px;
+        text-align: center;
+      }
+      .cal .cg i {
+        font-style: normal;
+        padding: 5px 0;
+        border-radius: 6px;
+        color: #aebccb;
+      }
+      .cal .cg i.hd {
+        color: #66788c;
+        font-size: 10px;
+      }
+      .cal .cg i.today {
+        background: var(--acc);
+        color: #081018;
+        font-weight: 700;
+      }
+      .noti {
+        padding: 12px 16px;
+        border-bottom: 1px solid #ffffff10;
+        font-size: 12.5px;
+      }
+      .noti b {
+        display: block;
+        margin-bottom: 3px;
+      }
+      .noti p {
+        color: #8fa0b2;
+        line-height: 1.5;
+      }
+      .noti small {
+        color: #5f7186;
+        font-family: var(--mono);
+      }
+      .help-ov {
+        background: #07090dd6;
+        backdrop-filter: blur(10px);
+        display: grid;
+        place-items: center;
+      }
+      .help-card {
+        width: min(620px, 92%);
+        max-height: 84%;
+        overflow: auto;
+        background: #0f141bf5;
+        border: 1px solid #ffffff22;
+        border-radius: 14px;
+        padding: 26px 30px;
+      }
+      .help-card h3 {
+        font-family: var(--disp);
+        letter-spacing: 1px;
+        font-size: 22px;
+        margin-bottom: 4px;
+      }
+      .help-card .sub {
+        color: #7d8ea3;
+        font-size: 12.5px;
+        margin-bottom: 16px;
+      }
+      .krow {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 8px 0;
+        border-bottom: 1px dashed #223041;
+        font-size: 13px;
+        color: #c3d0dd;
+      }
+      .krow b {
+        flex: none;
+      }
+      .exitd {
+        background: #000000a0;
+        display: grid;
+        place-items: center;
+      }
+      .exitd .card {
+        background: #151a21;
+        border: 1px solid #ffffff26;
+        border-radius: 12px;
+        padding: 28px 36px;
+        text-align: center;
+      }
+      .exitd h3 {
+        font-family: var(--disp);
+        margin-bottom: 8px;
+      }
+      .exitd p {
+        color: #8fa0b2;
+        font-size: 13px;
+        margin-bottom: 18px;
+      }
+      .exitd button {
+        margin: 0 6px;
+        padding: 8px 22px;
+        border-radius: 7px;
+        border: 1px solid #ffffff2c;
+        background: #ffffff10;
+        color: #fff;
+      }
+      .exitd button.danger {
+        background: #c0392b;
+        border-color: #c0392b;
+      }
+
+      /* 应用内容 */
+      .term {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: #0c0f14;
+        color: #cfd9e2;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        padding: 12px 14px;
+      }
+      .term .tout {
+        flex: 1;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        line-height: 1.65;
+      }
+      .term .tline {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .term .tps {
+        color: #6fce8f;
+        flex: none;
+      }
+      .term .tin {
+        flex: 1;
+        background: none;
+        border: none;
+        outline: none;
+        color: #e8eef5;
+        font-family: var(--mono);
+        font-size: 12.5px;
+      }
+      .mh {
+        font-weight: 700;
+        margin: 16px 0 6px;
+        text-transform: uppercase;
+        color: #8fc7ff;
+        letter-spacing: 0.5px;
+      }
+      .mp {
+        padding-left: 28px;
+        line-height: 1.75;
+        color: #c3cfda;
+      }
+      .mtb {
+        padding: 4px 28px 8px;
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 4px 18px;
+      }
+      .mk {
+        color: #ffd479;
+        white-space: pre;
+      }
+      .mv {
+        color: #c3cfda;
+      }
+      .manhead {
+        color: #66788c;
+        border-bottom: 1px solid #223041;
+        padding-bottom: 8px;
+        font-size: 12px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .manview {
+        display: flex;
+        height: 100%;
+      }
+      .man-side {
+        width: 150px;
+        flex: none;
+        border-right: 1px solid #ffffff16;
+        padding: 8px;
+      }
+      .man-side button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
+        color: #9fb0c2;
+        font-family: var(--mono);
+        font-size: 12px;
+        padding: 7px 9px;
+        border-radius: 6px;
+      }
+      .man-side button.on,
+      .man-side button:hover {
+        background: #ffffff14;
+        color: #fff;
+      }
+      .man-main {
+        flex: 1;
+        overflow: auto;
+        padding: 16px 22px;
+        font-family: var(--mono);
+        font-size: 12.5px;
+      }
+      .man-foot {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #1a2129;
+        color: #8fa0b2;
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 5px 14px;
+        border-top: 1px solid #ffffff12;
+      }
+      .files {
+        padding: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .f-path {
+        padding: 8px 14px;
+        border-bottom: 1px solid #ffffff16;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: #8fa0b2;
+        background: #ffffff08;
+      }
+      .f-list {
+        flex: 1;
+        overflow: auto;
+        padding: 8px;
+      }
+      .f-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 7px 12px;
+        border-radius: 7px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .f-row:hover {
+        background: #ffffff12;
+      }
+      .f-row small {
+        margin-left: auto;
+        color: #66788c;
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+      .f-doc {
+        flex: 1;
+        overflow: auto;
+        padding: 20px 24px;
+        line-height: 1.9;
+        font-size: 13.5px;
+      }
+      .f-doc h4 {
+        font-family: var(--disp);
+        margin: 14px 0 6px;
+      }
+      .editor textarea {
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        color: inherit;
+        border: none;
+        outline: none;
+        resize: none;
+        padding: 16px;
+        font-family: var(--mono);
+        font-size: 13px;
+        line-height: 1.7;
+      }
+      .about {
+        padding: 22px 26px;
+        line-height: 1.8;
+      }
+      .about h4 {
+        font-family: var(--disp);
+        font-size: 24px;
+        letter-spacing: 1px;
+        margin-bottom: 2px;
+      }
+      .about .sub {
+        color: #8fa0b2;
+        font-size: 13px;
+        margin-bottom: 14px;
+      }
+      .about dl {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 6px 18px;
+        font-size: 13px;
+        margin-bottom: 14px;
+      }
+      .about dt {
+        color: #78ce96;
+        font-family: var(--mono);
+      }
+      .about p {
+        color: #c3cfda;
+        font-size: 13px;
+      }
+      .welcome {
+        padding: 26px 30px;
+        line-height: 1.8;
+      }
+      .welcome h4 {
+        font-family: var(--disp);
+        font-size: 30px;
+        letter-spacing: 1px;
+      }
+      .welcome .wt {
+        color: var(--acc);
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 2px;
+      }
+      .welcome ul {
+        margin: 12px 0 16px 18px;
+        color: #c3cfda;
+        font-size: 13.5px;
+      }
+      .welcome li {
+        margin: 6px 0;
+      }
+      .welcome .wb {
+        display: flex;
+        gap: 10px;
+        margin-top: 6px;
+      }
+      .welcome .wb button {
+        background: var(--acc);
+        color: #081018;
+        border: none;
+        border-radius: 8px;
+        padding: 9px 18px;
+        font-weight: 600;
+        font-size: 13px;
+        transition:
+          filter 0.14s,
+          transform 0.14s;
+      }
+      .welcome .wb button:hover {
+        filter: brightness(1.15);
+        transform: translateY(-1px);
+      }
+      .welcome .wb button.ghost {
+        background: #ffffff14;
+        color: #e6edf3;
+      }
+      .qs {
+        width: 360px;
+        background: #151920f5;
+        border: 1px solid #ffffff1e;
+        border-radius: 14px;
+        padding: 16px;
+        backdrop-filter: blur(16px);
+      }
+      .qs-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .qs-grid button {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        align-items: center;
+        background: #ffffff0e;
+        border: 1px solid transparent;
+        border-radius: 11px;
+        padding: 12px 4px;
+        color: #cdd8e4;
+        font-size: 11.5px;
+        transition: all 0.13s;
+      }
+      .qs-grid button i {
+        font-style: normal;
+        font-size: 18px;
+      }
+      .qs-grid button.on {
+        background: var(--acc);
+        color: #081018;
+        font-weight: 600;
+      }
+      .qs-grid button:hover {
+        border-color: #ffffff40;
+      }
+      .qs-slider {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 8px 2px;
+        color: #9fb0c2;
+      }
+      .qs-slider input {
+        flex: 1;
+        accent-color: var(--acc);
+      }
+      .ctxmenu {
+        position: absolute;
+        z-index: 970;
+        background: #12161df5;
+        border: 1px solid #ffffff22;
+        border-radius: 9px;
+        padding: 5px;
+        min-width: 200px;
+        animation: popIn 0.13s ease-out;
+      }
+      .desk-ico {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        color: #eef3f9;
+        font-size: 11.5px;
+        text-shadow: 0 1px 4px #000c;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 8px;
+        z-index: 2;
+      }
+      .desk-ico:hover {
+        background: #ffffff18;
+      }
+      .desk-ico i {
+        font-style: normal;
+        font-size: 34px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="dm">
+      <div class="dm-bg"></div>
+      <header class="dm-top">
+        <span
+          ><b>de-playground@web</b>: ~$ display-manager --choose-session</span
+        ><span id="dmClock"></span>
+      </header>
+      <div class="dm-main">
+        <div class="dm-left">
+          <div class="dm-bigclock">
+            <span id="bigClock">--:--</span><small id="bigSec"></small>
+          </div>
+          <div id="bigDate"></div>
+          <div class="dm-title">桌面环境 <em>体验场</em></div>
+          <div class="dm-sub">
+            11 个可交互的 Linux 桌面会话 · 每个都内置 man 手册 · 无需安装
+          </div>
+          <div id="sessList"></div>
+        </div>
+        <div class="dm-right"><div id="dmDetail"></div></div>
+      </div>
+      <footer class="dm-foot">
+        <span id="bootlog"></span><span>↑↓ 选择 &nbsp;·&nbsp; Enter 登录</span>
+      </footer>
+    </div>
+
+    <main id="session"></main>
+
+    <script>
+      "use strict";
+      const $ = (s, r = document) => r.querySelector(s);
+      const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+      function el(t, c, h) {
+        const n = document.createElement(t);
+        if (c) n.className = c;
+        if (h != null) n.innerHTML = h;
+        return n;
+      }
+      const p2 = (n) => String(n).padStart(2, "0");
+      const esc = (s) =>
+        s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const WK = "日一二三四五六";
+
+      /* ============================================================ MAN PAGES */
+      const MAN = {
+        gnome: {
+          name: "gnome-shell(1)",
+          sec: [
+            ["NAME", "gnome-shell — GNOME 的核心界面：顶栏、活动概览与合成器"],
+            [
+              "DESCRIPTION",
+              "GNOME 没有传统的「任务栏 + 桌面图标」模型，一切围绕「活动概览」(Activities Overview)：按下 Super 键，所有窗口、工作区、应用与全局搜索汇聚到同一个画面。工作区动态增删，GNOME 40 起水平排列。本模拟中：点击左上角「活动」、按 Super 键、或把鼠标甩到左上角（热角）都能进入概览。",
+            ],
+            [
+              "OVERVIEW 的组成",
+              "· 窗口缩略图 —— 点击聚焦",
+              "· 左侧 Dock —— 常用与运行中的应用（圆点 = 正在运行）",
+              "· 应用网格 —— 点击概览里的 ⊞ 按钮或按 Super+A",
+              "· 顶部搜索框 —— 键入即搜应用",
+            ],
+            [
+              "KEY BINDINGS",
+              {
+                tb: [
+                  ["Super", "进入 / 退出活动概览"],
+                  ["Super + A", "应用网格"],
+                  ["Super + ← / →", "窗口贴靠左 / 右半屏"],
+                  ["Super + ↑", "最大化"],
+                  ["Super + PageUp / Down", "切换工作区"],
+                  ["Alt + F2", "运行命令对话框"],
+                ],
+              },
+            ],
+            [
+              "NOTES",
+              "· 窗口默认没有「最小化」按钮、也没有任务栏——GNOME 主张用「概览 + 搜索」代替「切换」思维。",
+              "· 想要 Dock / 托盘？装 GNOME Extensions（扩展）加回来。",
+              "· GTK4 + libadwaita，应用普遍自带头栏 (CSD)。",
+              "· 触摸板手势：三指上滑 = 概览，三指左右滑 = 工作区。",
+            ],
+          ],
+        },
+        xfce: {
+          name: "xfdesktop(1)",
+          sec: [
+            ["NAME", "xfdesktop / xfce4-panel — 轻量、模块化的传统桌面"],
+            [
+              "DESCRIPTION",
+              "Xfce 诞生于 1996 年，信条是「轻量但不简陋」。它保留完整的经典桌面隐喻：桌面图标、面板、任务栏、系统托盘，全程鼠标友好；各组件（窗口管理器 xfwm4、面板、会话）相互解耦，可单独替换。左上角 Applications 菜单仿照著名的 xfce4-whiskermenu-plugin：带搜索与分类，是多数 Xfce 发行版的第一入口。",
+            ],
+            [
+              "KEY BINDINGS",
+              {
+                tb: [
+                  ["Alt + F1", "打开 Whisker 菜单"],
+                  ["Alt + F2", "运行对话框 (xfce4-appfinder)"],
+                  ["Alt + Tab", "窗口切换"],
+                  ["Ctrl + Alt + D", "显示桌面"],
+                  ["Ctrl + Alt + ← / →", "切换工作区"],
+                ],
+              },
+            ],
+            [
+              "NOTES",
+              "· 内存占用远低于 GNOME / KDE，老机器友好。",
+              "· 面板插件丰富：任务栏、工作区分页器、CPU 监视器……",
+              "· Xfce 4.20 起提供实验性 Wayland 会话。",
+              "· 哲学：稳定、可预期、不替用户做决定。",
+            ],
+          ],
+        },
+        cinnamon: {
+          name: "cinnamon(1)",
+          sec: [
+            ["NAME", "cinnamon — Linux Mint 出品的「现代经典」桌面"],
+            [
+              "DESCRIPTION",
+              "2011 年 GNOME 3 发布后，Linux Mint 团队基于 GNOME 技术孵化了 Cinnamon：保留传统布局（底部面板 + 开始菜单 + 托盘），同时享有现代合成器特效。窗口管理器 Muffin 是 Mutter 的分支。点左下角「菜单」或按 Super 试试。",
+            ],
+            [
+              "KEY BINDINGS",
+              {
+                tb: [
+                  ["Super", "打开菜单"],
+                  ["Alt + Tab", "带缩略图的窗口切换"],
+                  ["Ctrl + Alt + ↑", "工作区总览 (Expo)"],
+                  ["Ctrl + Alt + ← / →", "切换工作区"],
+                  ["热角", "可在设置中把屏幕四角映射为任意动作"],
+                ],
+              },
+            ],
+            [
+              "NOTES",
+              "· 三层扩展：面板小程序 (Applets)、桌面小件 (Desklets)、功能扩展 (Extensions)。",
+              "· Nemo 文件管理器：双栏、批量重命名，功能比 Nautilus 更全。",
+              "· 对比 GNOME：坚持鼠标优先的经典隐喻；对比 MATE：渲染与动效更现代。",
+            ],
+          ],
+        },
+        plasma: {
+          name: "plasmashell(1)",
+          sec: [
+            ["NAME", "plasmashell — KDE Plasma 桌面外壳"],
+            [
+              "DESCRIPTION",
+              "Plasma 的核心哲学是「一切皆部件 (Plasmoid)」：面板、启动器、时钟……全是可拖拽、可配置的部件。默认布局像 Windows，但你可以改成任何形态——试试右键桌面。Plasma 6 基于 Qt6 与 KWin，默认 Wayland。",
+            ],
+            [
+              "KEY BINDINGS",
+              {
+                tb: [
+                  ["Meta", "打开应用启动器 (Kickoff)"],
+                  ["Alt + Space", "KRunner：搜索 / 计算 / 单位换算"],
+                  ["Meta + W", "桌面概览 (Overview)"],
+                  ["Meta + D", "显示桌面"],
+                  ["Meta + ← / →", "窗口贴靠"],
+                ],
+              },
+            ],
+            [
+              "NOTES",
+              "· 右键桌面 / 面板即可添加部件、换壁纸、进入编辑模式（本模拟已实现右键菜单）。",
+              "· Activities：为不同工作场景准备多套桌面。",
+              "· Dolphin：可能是 Linux 上最强大的文件管理器。",
+              "· 系统设置的选项数量是传说级的——小心沉迷。",
+            ],
+          ],
+        },
+        mate: {
+          name: "mate-panel(1)",
+          sec: [
+            ["NAME", "mate-panel / marco — GNOME 2 的直系延续"],
+            [
+              "DESCRIPTION",
+              "2011 年 GNOME 转向第三代界面后，社区 fork 了 GNOME 2 的全部代码继续开发——这就是 MATE。窗口管理器 Marco 源自 Metacity，文件管理器 Caja 源自旧版 Nautilus。布局是经典双面板：上栏菜单 + 托盘，下栏窗口列表（本模拟如实还原）。",
+            ],
+            [
+              "KEY BINDINGS",
+              {
+                tb: [
+                  ["Alt + F1", "打开应用程序菜单"],
+                  ["Alt + F2", "运行对话框"],
+                  ["Alt + Tab", "切换窗口"],
+                  ["Ctrl + Alt + ← / →", "切换工作区"],
+                ],
+              },
+            ],
+            [
+              "NOTES",
+              "· 对比 Xfce：两者都轻量传统，MATE 的血统更接近老 GNOME 的交互细节。",
+              "· 对比 Cinnamon：MATE 更保守，动效更少，更省资源。",
+              "· 适合想要「2010 年的手感 + 今天的维护」的用户。",
+            ],
+          ],
+        },
+        i3: {
+          name: "i3(1)",
+          sec: [
+            ["NAME", "i3 - an improved dynamic tiling window manager"],
+            ["SYNOPSIS", "i3 [-a] [-c configfile]"],
+            [
+              "DESCRIPTION",
+              "i3 是平铺式窗口管理器：窗口自动切分屏幕、绝不重叠，几乎完全键盘驱动。新窗口默认切开当前容器；「拖动窗口」不存在（除非切到浮动模式）。多开几个终端，看屏幕如何被切分——这是理解平铺的最快方式。本模拟中 Mod = Alt（与 i3 默认一致）。",
+            ],
+            [
+              "KEY BINDINGS",
+              {
+                tb: [
+                  ["Mod + Enter", "打开终端 (xterm)"],
+                  ["Mod + d", "dmenu 启动器"],
+                  ["Mod + h / j / k / l", "焦点 ← ↓ ↑ →（方向键亦可）"],
+                  ["Mod + Shift + h/j/k/l", "移动窗口位置"],
+                  ["Mod + v / b", "下次分割：垂直 / 水平"],
+                  ["Mod + f", "全屏切换"],
+                  ["Mod + Shift + q", "关闭窗口"],
+                  ["Mod + 1…4", "切换工作区"],
+                  ["Mod + Shift + 1…4", "把窗口送去工作区"],
+                  ["Mod + Shift + e", "退出 i3（弹确认）"],
+                ],
+              },
+            ],
+            [
+              "CONFIG",
+              "一切配置都在 ~/.config/i3/config（纯文本）。改完 Mod+Shift+c 重载。没有图形设置界面——这是特性，不是缺陷。",
+            ],
+            [
+              "NOTES",
+              "· i3 不自带任何应用：终端、启动器、壁纸自己搭配。",
+              "· 状态栏 = i3bar + i3status；脚本控制用 IPC：i3-msg 'workspace 3'。",
+              "· 入门陡峭，熟练后双手不离主键盘区。",
+            ],
+          ],
+        },
+        sway: {
+          name: "sway(1)",
+          sec: [
+            ["NAME", "sway - i3 兼容的 Wayland 合成器"],
+            [
+              "DESCRIPTION",
+              "Sway 把 i3 的工作方式带到 Wayland：配置文件与快捷键几乎完全兼容，多数人迁移只需改几行。本模拟中 Mod = Alt。与 i3 的主要差异：",
+              "· 终端：$term 变量，通常指向 foot / kitty / alacritty",
+              "· 启动器：dmenu 换成 fuzzel 或 wofi（Mod+d，本模拟用了 wofi 风格）",
+              "· 截图：用 grim + slurp 组合",
+              "· X 应用通过 Xwayland 运行",
+            ],
+            [
+              "KEY BINDINGS",
+              {
+                tb: [
+                  ["Mod + Enter", "终端 ($term)"],
+                  ["Mod + d", "fuzzel / wofi"],
+                  ["Mod + h j k l", "移动焦点"],
+                  ["Mod + Shift + q", "关闭窗口"],
+                  ["Mod + 1…4", "工作区"],
+                  ["Mod + Shift + e", "退出"],
+                ],
+              },
+            ],
+            [
+              "NOTES",
+              "· 调试：swaymsg -t get_tree；详细日志：sway -d 2＞ ~/sway.log",
+              "· 多显示器：在配置里写 output 段。",
+              "· 同语法的亲戚：Hyprland（动效激进派）。",
+            ],
+          ],
+        },
+        lxqt: {
+          name: "lxqt-panel(1)",
+          sec: [
+            ["NAME", "lxqt-panel / lxqt-session — 轻量级 Qt 桌面"],
+            [
+              "DESCRIPTION",
+              "LXQt 由 LXDE-Qt 与 Razor-qt 两个项目合并而来（2013 启动，1.0 发布于 2022），把「轻」的哲学带进 Qt 世界：模块化面板、克制的特效、不捆绑重型依赖。窗口管理常配 Openbox（X11）或 labwc（Wayland）。",
+            ],
+            [
+              "KEY BINDINGS",
+              {
+                tb: [
+                  ["Alt + F1", "主菜单"],
+                  ["Alt + Tab", "窗口切换"],
+                  ["其余", "由窗口管理器定义（Openbox: rc.xml）"],
+                ],
+              },
+            ],
+            [
+              "NOTES",
+              "· 对比 LXDE：同源，但 LXDE 维护放缓，LXQt 是官方方向。",
+              "· 对比 Xfce：资源占用相近，LXQt 更「零件化」、Qt 生态。",
+            ],
+          ],
+        },
+        lxde: {
+          name: "lxpanel(1)",
+          sec: [
+            ["NAME", "lxpanel / lxsession — 极低资源的经典桌面"],
+            [
+              "DESCRIPTION",
+              "LXDE（2006，洪任谕发起）曾是「轻」的代名词：GTK2 + Openbox + PCManFM，整机空载内存可压到 100MB 级别，树莓派的 PIXEL 桌面就基于它。界面朴素：底部面板、开始菜单、快速启动栏——本模拟连浅色主题都还原了。",
+            ],
+            [
+              "KEY BINDINGS",
+              {
+                tb: [
+                  ["面板左下角", "应用菜单"],
+                  ["Alt + Tab", "窗口切换"],
+                  ["其余", "由 Openbox 的 rc.xml 定义"],
+                ],
+              },
+            ],
+            [
+              "NOTES",
+              "· PCManFM 以快著称，后来发展出 Qt 版供 LXQt 使用。",
+              "· 新项目普遍转向 LXQt；LXDE 的意义在于证明「完整桌面可以非常便宜」。",
+            ],
+          ],
+        },
+        budgie: {
+          name: "budgie-desktop(1)",
+          sec: [
+            ["NAME", "budgie-desktop — 优雅、克制的现代桌面"],
+            [
+              "DESCRIPTION",
+              "Budgie 诞生于 Solus 项目（2014），设计目标是「现代但不打扰」：传统面板布局 + 精致的视觉细节。招牌功能是 Raven——右侧滑出的侧边栏，集合通知、日历与快捷开关（本模拟右上角有按钮，快捷键 Super+N）。v10 基于 GNOME 技术栈；v11 正迁移到 EFL 以独立并提速。",
+            ],
+            [
+              "KEY BINDINGS",
+              {
+                tb: [
+                  ["Super", "Budgie 菜单"],
+                  ["Super + N", "Raven 侧边栏"],
+                  ["Alt + Tab", "窗口切换"],
+                ],
+              },
+            ],
+            [
+              "NOTES",
+              "· Applets：面板插件，可加工作区切换器、天气等。",
+              "· 对比 GNOME：保留任务栏与传统隐喻；对比 Cinnamon：视觉更扁平精致。",
+            ],
+          ],
+        },
+        cosmic: {
+          name: "cosmic(1)",
+          sec: [
+            ["NAME", "cosmic — System76 用 Rust 从零构建的桌面"],
+            [
+              "DESCRIPTION",
+              "COSMIC 是 Pop!_OS 背后的 System76 从零打造的桌面：界面用 Rust + iced 编写，合成器 cosmic-comp 基于 Smithay。卖点：开箱可选的自动平铺、极快的启动器、应用库与独立工作区。本模拟平铺默认关闭，按 Super+Y（或右上角状态菜单里的开关）体验。",
+            ],
+            [
+              "KEY BINDINGS",
+              {
+                tb: [
+                  ["Super + /", "启动器（键入即搜、回车运行）"],
+                  ["Super + T", "终端"],
+                  ["Super + Y", "自动平铺 开 / 关"],
+                  ["Super + A", "应用库"],
+                  ["Super + 1…4", "切换工作区"],
+                  ["Super + ← / →", "窗口贴靠左右"],
+                ],
+              },
+            ],
+            [
+              "NOTES",
+              "· 平铺开启后新窗口自动切分，秒变类 i3 手感；关闭则回到浮动窗口——一套桌面，两种范式。",
+              "· 对比旧方案（GNOME + Pop Shell 扩展）：原生实现，稳定得多。",
+              "· 终端、文件、编辑器、商店全套 Rust/iced 原生应用。",
+            ],
+          ],
+        },
+      };
+
+      /* ============================================================ SESSIONS */
+      const S = [
+        {
+          id: "gnome",
+          name: "GNOME",
+          glyph: "GN",
+          cn: "活动概览 · 手势流",
+          acc: "#78aeed",
+          desc: "激进派代表：没有任务栏、没有桌面图标，一切从 Super 键的「活动概览」开始。试试把鼠标甩到左上角的热角。",
+          stack: [
+            ["首发", "1999 · GNOME 3 于 2011"],
+            ["维护", "GNOME 基金会"],
+            ["工具链", "GTK 4 + libadwaita"],
+            ["合成器", "Mutter"],
+            ["范式", "堆叠 · 动态工作区"],
+            ["定位", "主流发行版默认"],
+          ],
+          phil: "GNOME 认为用户不该管理窗口，而该专注任务：搜索与概览替代任务栏，动态工作区替代桌面。代价是强烈的「主见」——不喜欢的部分要靠扩展改回来。",
+          tips: [
+            "按 <kbd>Super</kbd> 或点左上角「活动」进入概览，试试全局搜索",
+            "概览左侧 Dock 点击图标打开应用，圆点代表运行中",
+            "开两个窗口，在概览里切换工作区；右上角 ▾ 打开快速设置",
+          ],
+          wp: "radial-gradient(900px 560px at 72% 18%,#37518b,transparent 62%),linear-gradient(160deg,#1b2340,#101426 58%,#0c0f1c)",
+          chrome: { t: 40, b: 0 },
+          panel: "top",
+          ws: 3,
+          tiling: false,
+          keys: [
+            ["Super", "活动概览（本模拟也可点按钮/热角）"],
+            ["Super + A", "应用网格"],
+            ["Super + ← / →", "窗口贴靠"],
+            ["Super + PgUp/PgDn", "工作区"],
+          ],
+          apps: {
+            term: "GNOME 终端",
+            files: "文件 (Nautilus)",
+            editor: "文本编辑器",
+          },
+        },
+        {
+          id: "xfce",
+          name: "Xfce",
+          glyph: "XF",
+          cn: "轻量 · 模块化老牌",
+          acc: "#5fa8e8",
+          desc: "1996 年至今的轻量老牌：经典面板 + 著名的 Whisker 菜单，组件可拆可换，鼠标全程友好。",
+          stack: [
+            ["首发", "1996"],
+            ["维护", "Xfce 团队 (O. Fourdan 创立)"],
+            ["工具链", "GTK 3"],
+            ["窗口管理", "Xfwm4"],
+            ["范式", "堆叠 · 传统桌面"],
+            ["定位", "轻量全能"],
+          ],
+          phil: "Xfce 不追逐潮流：界面可预期、依赖少、配置都在明面上。它证明轻量不必简陋——面板插件和设置项一样不少。",
+          tips: [
+            "点左上角 Applications 打开 Whisker 菜单，顶部可以搜索",
+            "双击桌面上的「主目录」图标试试（经典桌面图标）",
+            "右键桌面可以换壁纸、开终端",
+          ],
+          wp: "linear-gradient(150deg,#31506f,#1e2f45 55%,#16222f)",
+          chrome: { t: 38, b: 0 },
+          panel: "top",
+          ws: 1,
+          tiling: false,
+          icons: true,
+          keys: [
+            ["Alt + F1", "Whisker 菜单"],
+            ["Alt + F2", "运行对话框"],
+            ["Ctrl + Alt + D", "显示桌面"],
+          ],
+          apps: { term: "Xfce 终端", files: "Thunar", editor: "Mousepad" },
+        },
+        {
+          id: "cinnamon",
+          name: "Cinnamon",
+          glyph: "CI",
+          cn: "Mint 的现代经典",
+          acc: "#87cf3e",
+          desc: "Linux Mint 为「怀念传统桌面的人」打造：底部面板 + 开始菜单，现代特效，一切都在鼠标够得到的地方。",
+          stack: [
+            ["首发", "2011 (1.0: 2012)"],
+            ["维护", "Linux Mint 团队"],
+            ["工具链", "GTK 3"],
+            ["窗口管理", "Muffin (Mutter 分支)"],
+            ["范式", "堆叠 · 传统布局"],
+            ["定位", "Mint 默认"],
+          ],
+          phil: "Cinnamon 的立场很直接：布局沿用二十年验证过的经典，把精力花在打磨细节与 Applet/Desklet 扩展生态上。",
+          tips: [
+            "点左下角「菜单」——注意搜索框与收藏区",
+            "开两三个窗口，看底部面板的窗口列表如何工作",
+            "右键桌面也有菜单，面板右侧是托盘与时钟",
+          ],
+          wp: "linear-gradient(150deg,#0f4034,#155a40 48%,#0a2c22)",
+          chrome: { t: 0, b: 42 },
+          panel: "bottom",
+          ws: 1,
+          tiling: false,
+          keys: [
+            ["Super", "菜单"],
+            ["Alt + Tab", "窗口切换"],
+            ["Ctrl + Alt + ↑", "工作区 Expo"],
+          ],
+          apps: {
+            term: "终端",
+            files: "Nemo 文件管理器",
+            editor: "xed 编辑器",
+          },
+        },
+        {
+          id: "plasma",
+          name: "KDE Plasma",
+          glyph: "PL",
+          cn: "万物皆可部件",
+          acc: "#3daee9",
+          desc: "配置欲的天堂：一切皆 Plasmoid 部件，面板桌面随便捏。右键桌面就能看到 Plasma 的灵魂。",
+          stack: [
+            ["首发", "2014 (Plasma 5) · 6: 2024"],
+            ["维护", "KDE 社区"],
+            ["工具链", "Qt 6"],
+            ["合成器", "KWin"],
+            ["范式", "堆叠 · 完全可定制"],
+            ["定位", "高度可配置"],
+          ],
+          phil: "Plasma 相信用户知道自己要什么：每一个像素、每一个快捷键、每一个动效都可调。代价是选项多到需要自制力。",
+          tips: [
+            "点左下角 ◈ 打开 Kickoff 启动器",
+            "<b>右键桌面</b> —— 加部件 / 换壁纸，这是 Plasma 的精髓",
+            "点面板右侧时钟，弹出日历部件",
+          ],
+          wp: "radial-gradient(800px 480px at 20% 82%,#134067,transparent 60%),linear-gradient(160deg,#0b1b2e,#12294a)",
+          chrome: { t: 0, b: 46 },
+          panel: "bottom",
+          ws: 1,
+          tiling: false,
+          keys: [
+            ["Meta", "Kickoff 启动器"],
+            ["Alt + Space", "KRunner"],
+            ["Meta + ← / →", "贴靠"],
+          ],
+          apps: { term: "Konsole", files: "Dolphin", editor: "Kate" },
+        },
+        {
+          id: "mate",
+          name: "MATE",
+          glyph: "MA",
+          cn: "GNOME 2 还活着",
+          acc: "#8ab06a",
+          desc: "GNOME 2 的直系后裔：上下双面板、朴素扎实。想要 2010 年的手感加今天的维护，就是它。",
+          stack: [
+            ["首发", "2011 (fork GNOME 2)"],
+            ["维护", "MATE 社区"],
+            ["工具链", "GTK 3"],
+            ["窗口管理", "Marco (Metacity 分支)"],
+            ["范式", "堆叠 · 双面板经典"],
+            ["定位", "保守轻量"],
+          ],
+          phil: "MATE 的存在本身即宣言：界面无需推倒重来。它延续了 GNOME 2 的每一个交互细节，只做维护与移植。",
+          tips: [
+            "上栏：应用程序菜单 + 托盘；下栏：窗口列表——经典双面板",
+            "开几个窗口，在下栏窗口列表里切换",
+            "试试右键桌面菜单",
+          ],
+          wp: "linear-gradient(160deg,#43614f,#26382e)",
+          chrome: { t: 34, b: 38 },
+          panel: "both",
+          ws: 1,
+          tiling: false,
+          keys: [
+            ["Alt + F1", "菜单"],
+            ["Alt + F2", "运行对话框"],
+            ["Alt + Tab", "切换窗口"],
+          ],
+          apps: { term: "MATE 终端", files: "Caja", editor: "Pluma" },
+        },
+        {
+          id: "i3",
+          name: "i3",
+          glyph: "i3",
+          cn: "键盘平铺 · X11",
+          acc: "#4c7899",
+          desc: "平铺窗口管理器的教科书：窗口自动切分、绝不重叠，全程键盘。按 Alt+Enter 开始。",
+          stack: [
+            ["首发", "2009"],
+            ["维护", "Michael Stapelberg 等"],
+            ["工具链", "C + X11"],
+            ["窗口管理", "i3 自身"],
+            ["范式", "手动平铺 (树)"],
+            ["定位", "键盘流效率"],
+          ],
+          phil: "i3 不做任何你没要求的事：没有壁纸工具、没有设置界面、没有自带应用。你得到的是一块纯净的、可脚本化的画布。",
+          tips: [
+            "<kbd>Alt</kbd>+<kbd>Enter</kbd> 连开 3 个终端，看屏幕被切分",
+            "<kbd>Alt</kbd>+<kbd>h/j/k/l</kbd> 移动焦点，<kbd>Alt</kbd>+<kbd>d</kbd> 呼出 dmenu",
+            "<kbd>Alt</kbd>+<kbd>1~4</kbd> 切工作区；在终端输入 <kbd>man i3</kbd> 看完整键位",
+          ],
+          wp: "linear-gradient(#0e1116,#0b0d11)",
+          chrome: { t: 0, b: 28 },
+          panel: "i3bar",
+          ws: 4,
+          tiling: true,
+          gap: 8,
+          keys: [
+            ["Alt + Enter", "终端"],
+            ["Alt + d", "dmenu"],
+            ["Alt + hjkl", "焦点"],
+            ["Alt + Shift + q", "关闭"],
+            ["Alt + 1~4", "工作区"],
+            ["Alt + Shift + e", "退出"],
+          ],
+          apps: { term: "xterm", files: null, editor: null },
+        },
+        {
+          id: "sway",
+          name: "Sway",
+          glyph: "SW",
+          cn: "Wayland 上的 i3",
+          acc: "#2ec4b6",
+          desc: "i3 配置的 Wayland 平行宇宙：键位几乎照搬，启动器换成 fuzzel/wofi。和 i3 页面对比着玩。",
+          stack: [
+            ["首发", "2015"],
+            ["维护", "Drew DeVault 等 (wlroots)"],
+            ["工具链", "C + Wayland (wlroots)"],
+            ["窗口管理", "sway 自身"],
+            ["范式", "手动平铺"],
+            ["定位", "现代平铺"],
+          ],
+          phil: "Sway 的信条是兼容优先：i3 用户迁移成本趋近于零，同时换来 Wayland 的安全模型与多显示器体验。",
+          tips: [
+            "键位与 i3 相同：<kbd>Alt</kbd>+<kbd>Enter</kbd> 开终端",
+            "<kbd>Alt</kbd>+<kbd>d</kbd> 呼出 wofi 风格启动器（对比 i3 的 dmenu 条）",
+            "顶部是 waybar；终端里输入 <kbd>man sway</kbd> 看与 i3 的差异",
+          ],
+          wp: "linear-gradient(160deg,#10222c,#0b161d)",
+          chrome: { t: 44, b: 0 },
+          panel: "waybar",
+          ws: 4,
+          tiling: true,
+          gap: 8,
+          keys: [
+            ["Alt + Enter", "终端 ($term)"],
+            ["Alt + d", "wofi"],
+            ["Alt + hjkl", "焦点"],
+            ["Alt + Shift + q", "关闭"],
+            ["Alt + 1~4", "工作区"],
+          ],
+          apps: { term: "终端 (foot)", files: null, editor: null },
+        },
+        {
+          id: "lxqt",
+          name: "LXQt",
+          glyph: "QT",
+          cn: "轻量 · Qt 阵营",
+          acc: "#4aa3df",
+          desc: "LXDE 与 Razor-qt 合并出的轻量 Qt 桌面：模块化面板、不捆绑重依赖，老机器与新架构兼得。",
+          stack: [
+            ["首发", "2013 (1.0: 2022)"],
+            ["维护", "LXQt 团队"],
+            ["工具链", "Qt"],
+            ["窗口管理", "Openbox / labwc"],
+            ["范式", "堆叠 · 轻量"],
+            ["定位", "轻量现代"],
+          ],
+          phil: "LXQt 把「省资源」当作架构原则而非妥协：Qt 的生态 + 严格裁剪的依赖面，轻得很体面。",
+          tips: [
+            "左下角打开主菜单，感受极简分类",
+            "多开几个窗口，观察轻快直接的窗口管理",
+            "终端里 <kbd>man lxqt</kbd> 了解它与 LXDE 的关系",
+          ],
+          wp: "linear-gradient(150deg,#26344f,#151d31)",
+          chrome: { t: 0, b: 40 },
+          panel: "bottom",
+          ws: 1,
+          tiling: false,
+          keys: [
+            ["Alt + F1", "主菜单"],
+            ["Alt + Tab", "窗口切换"],
+          ],
+          apps: {
+            term: "QTerminal",
+            files: "PCManFM-Qt",
+            editor: "FeatherPad",
+          },
+        },
+        {
+          id: "lxde",
+          name: "LXDE",
+          glyph: "LX",
+          cn: "极轻 · GTK2 时代",
+          acc: "#4d77a9",
+          desc: "「轻」的代名词：GTK2 + Openbox，空载内存 100MB 级别。浅色面板一秒回到那个年代。",
+          stack: [
+            ["首发", "2006"],
+            ["维护", "洪任谕 (PCMan)"],
+            ["工具链", "GTK 2"],
+            ["窗口管理", "Openbox"],
+            ["范式", "堆叠 · 极简"],
+            ["定位", "极限轻量"],
+          ],
+          phil: "LXDE 证明了一件事：完整的桌面体验可以跑在几乎任何硬件上。树莓派早年的 PIXEL 桌面正是基于它。",
+          tips: [
+            "左下角菜单 + 快速启动栏，界面朴素到极致",
+            "桌面上有「主目录」和「回收站」图标",
+            "和 LXQt 对比体验：同源，两种实现",
+          ],
+          wp: "linear-gradient(150deg,#93abc9,#5d7a9b)",
+          chrome: { t: 0, b: 36 },
+          panel: "bottom",
+          light: true,
+          icons: true,
+          ws: 1,
+          tiling: false,
+          keys: [
+            ["面板菜单", "应用列表"],
+            ["Alt + Tab", "窗口切换"],
+          ],
+          apps: { term: "LXTerminal", files: "PCManFM", editor: "Leafpad" },
+        },
+        {
+          id: "budgie",
+          name: "Budgie",
+          glyph: "BU",
+          cn: "精致 · Raven 侧栏",
+          acc: "#5aa9e6",
+          desc: "Solus 孵化的精致派：传统布局 + 细腻视觉，招牌是右侧滑出的 Raven 通知侧栏（右上角按钮）。",
+          stack: [
+            ["首发", "2014"],
+            ["维护", "Buddy Works / UB 社区"],
+            ["工具链", "GTK (v11 迁往 EFL)"],
+            ["窗口管理", "Mutter 系"],
+            ["范式", "堆叠 · 精致传统"],
+            ["定位", "优雅开箱"],
+          ],
+          phil: "Budgie 追求「现代但不打扰」：克制的动效、集中的通知中心 (Raven)、不乱弹的设置项。",
+          tips: [
+            "点右上角 ❚ 按钮（或按 <kbd>Super</kbd>+<kbd>N</kbd>）打开 Raven 侧栏",
+            "Raven 里有日历、通知和快捷开关，点「小程序」页看看",
+            "左下角是 Budgie 菜单，带搜索与固定项",
+          ],
+          wp: "linear-gradient(160deg,#16414b,#0d2830)",
+          chrome: { t: 40, b: 0 },
+          panel: "top",
+          ws: 1,
+          tiling: false,
+          keys: [
+            ["Super", "Budgie 菜单"],
+            ["Super + N", "Raven"],
+            ["Alt + Tab", "窗口切换"],
+          ],
+          apps: { term: "终端", files: "文件", editor: "文本编辑器" },
+        },
+        {
+          id: "cosmic",
+          name: "COSMIC",
+          glyph: "CO",
+          cn: "Rust 新世代 · 混合平铺",
+          acc: "#ff9a3c",
+          desc: "System76 用 Rust + iced 从零构建：启动器极快，平铺一键开关（Super+Y），底部 Dock + 顶部工作区。",
+          stack: [
+            ["首发", "2024 起公开测试"],
+            ["维护", "System76"],
+            ["工具链", "Rust + iced"],
+            ["合成器", "cosmic-comp (Smithay)"],
+            ["范式", "堆叠 ⇄ 平铺混合"],
+            ["定位", "新世代"],
+          ],
+          phil: "COSMIC 的选择是重写而不是修补：用 Rust 换来内存安全与速度，把 Pop!_OS 多年打磨的平铺工作流做成原生一等公民。",
+          tips: [
+            "按 <kbd>Super</kbd>+<kbd>/</kbd>（或点顶栏「启动器」）体验快速启动",
+            "按 <kbd>Super</kbd>+<kbd>Y</kbd> 开启自动平铺，再开两三个窗口",
+            "顶栏左侧切换工作区；Dock 上圆点表示运行中的应用",
+          ],
+          wp: "radial-gradient(760px 420px at 76% 108%,#a3450f88,transparent),linear-gradient(160deg,#15161b,#0b0c10)",
+          chrome: { t: 38, b: 62 },
+          panel: "cosmic",
+          ws: 4,
+          tiling: false,
+          keys: [
+            ["Super + /", "启动器"],
+            ["Super + T", "终端"],
+            ["Super + Y", "平铺开关"],
+            ["Super + A", "应用库"],
+            ["Super + 1~4", "工作区"],
+          ],
+          apps: {
+            term: "COSMIC 终端",
+            files: "COSMIC 文件",
+            editor: "COSMIC 编辑器",
+          },
+        },
+      ];
+
+      /* ============================================================ DM 选择界面 */
+      let sel = 0,
+        cur = null;
+      const sessList = $("#sessList"),
+        dmDetail = $("#dmDetail");
+      function buildDM() {
+        S.forEach((c, i) => {
+          const d = el("div", "si", "");
+          d.style.setProperty("--a", c.acc);
+          d.append(
+            el("div", "si-ic", c.glyph),
+            (() => {
+              const t = el("div", "si-tx");
+              t.append(el("b", null, c.name), el("span", null, c.cn));
+              return t;
+            })(),
+            el("div", "si-tag", c.tiling ? "平铺" : "堆叠"),
+          );
+          d.onclick = () => dmSelect(i);
+          d.ondblclick = () => login(i);
+          d.onmouseenter = () => dmSelect(i);
+          sessList.append(d);
+        });
+        dmSelect(0);
+        const boot = [
+          "[ OK ] Reached target Graphical Interface",
+          "[ .. ] Loading session compositor registry",
+          "[ OK ] 11 desktop sessions available",
+          "[ OK ] man pages indexed (11 entries)",
+          "[ ** ] Waiting for user to select a session…",
+        ];
+        let bi = 0;
+        const bl = $("#bootlog");
+        setInterval(() => {
+          bl.textContent = boot[bi % boot.length];
+          bi++;
+        }, 1700);
+      }
+      function dmSelect(i) {
+        sel = i;
+        $$("#sessList .si").forEach((n, j) =>
+          n.classList.toggle("on", j === i),
+        );
+        const c = S[i];
+        dmDetail.style.setProperty("--a", c.acc);
+        const facts = c.stack
+          .map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`)
+          .join("");
+        const keys = c.keys
+          .slice(0, 3)
+          .map(([k, d]) => `<span><kbd>${k}</kbd> ${d}</span>`)
+          .join("");
+        dmDetail.innerHTML = `<span class="d-badge">${c.tiling ? "TILING 平铺" : "STACKING 堆叠"} · ${c.stack[2][1]}</span>
+  <h2>${c.name}</h2><p class="d-cn">${c.cn}</p>
+  ${pvHTML(c)}
+  <p class="d-desc">${c.desc}</p>
+  <dl class="d-facts">${facts}</dl>
+  <div class="d-keys">${keys}</div>
+  <button class="login" style="--a:${c.acc};background:${c.acc}">登录 ${c.name} <kbd style="background:#0003;border-color:#0004;color:#06121e">Enter</kbd></button>`;
+        $(".login", dmDetail).onclick = () => login(i);
+      }
+      function pvHTML(c) {
+        const tiles = c.tiling
+          ? `<div class="pv-tile f" style="left:4%;top:14%;width:44%;bottom:10%"></div>
+     <div class="pv-tile" style="left:52%;top:14%;width:44%;height:34%"></div>
+     <div class="pv-tile" style="left:52%;top:52%;width:44%;height:22%"><div class="pv-cur" style="left:8px;top:8px"></div></div>`
+          : `<div class="pv-w" style="left:9%;top:20%;width:46%;height:56%"></div>
+     <div class="pv-w f" style="left:34%;top:32%;width:46%;height:56%"><div class="pv-cur" style="left:12px;top:12px"></div></div>`;
+        const bars =
+          c.panel === "top" || c.panel === "waybar" || c.panel === "cosmic"
+            ? '<div class="pv-bar t"><i></i><i></i></div>'
+            : "" +
+                (c.panel === "bottom" ||
+                  c.panel === "i3bar" ||
+                  c.panel === "both")
+              ? '<div class="pv-bar b"><i></i></div>'
+              : "";
+        return `<div class="pv" style="background:${c.wp};--a:${c.acc}">${bars}${tiles}</div>`;
+      }
+      document.addEventListener("keydown", (e) => {
+        if ($("#dm").style.display === "none") return;
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          dmSelect(Math.min(sel + 1, S.length - 1));
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          dmSelect(Math.max(sel - 1, 0));
+        } else if (e.key === "Enter") {
+          login(sel);
+        }
+      });
+
+      /* ============================================================ 会话生命周期 */
+      const root = $("#session");
+      function login(i) {
+        const c = S[i];
+        $("#dm").style.display = "none";
+        root.classList.add("on");
+        root.innerHTML = "";
+        root.style.setProperty("--acc", c.acc);
+        root.style.setProperty(
+          "--rad",
+          (c.tiling
+            ? 0
+            : c.id === "cosmic" || c.id === "gnome"
+              ? 12
+              : c.id === "budgie"
+                ? 10
+                : c.id === "plasma" || c.id === "cinnamon"
+                  ? 8
+                  : c.light || c.id === "xfce"
+                    ? 5
+                    : 6) + "px",
+        );
+        root.style.setProperty("--winbg", c.light ? "#fbfbf8" : "#1e232b");
+        root.style.setProperty("--winfg", c.light ? "#242a31" : "#dde4ec");
+        root.style.setProperty("--tlb", c.light ? "#e9edf3" : "#262c35");
+        root.style.setProperty("--tlbfg", c.light ? "#2b323b" : "#d6dee8");
+        const wp = el("div", "wp");
+        wp.style.background = c.wp;
+        root.append(wp);
+        const work = el("div", "work");
+        work.style.cssText = `left:0;right:0;top:${c.chrome.t}px;bottom:${c.chrome.b}px`;
+        root.append(work);
+        cur = {
+          cfg: c,
+          root,
+          work,
+          wins: [],
+          ws: 1,
+          winSeq: 0,
+          Z: 60,
+          timers: [],
+          popups: [],
+          titleFns: [],
+          taskFn: null,
+          tilingOn: !!c.tiling,
+          metaUsed: true,
+        };
+        if (c.id === "cosmic") cur.tilingOn = false;
+        buildPanel(cur);
+        const chips = el("div", "chips");
+        chips.style.bottom = c.chrome.b + 10 + "px";
+        chips.append(
+          el("button", "chip", "？ 快捷键"),
+          el("button", "chip", "⏻ 注销"),
+        );
+        chips.children[0].onclick = () => helpOverlay(cur);
+        chips.children[1].onclick = logout;
+        root.append(chips);
+        setClockLoop(cur);
+        // 入场
+        const intro = el(
+          "div",
+          "intro",
+          `<div class="intro-in"><h1 style="color:${c.acc}">${c.name}</h1><p>${c.cn}</p><div class="tags"><span>${c.stack[2][1]}</span><span>${c.tiling ? "平铺" : "堆叠"}</span><span>man ${MAN[c.id].name.replace(/\(\d\)/, "")}</span></div><p style="margin-top:18px;font-size:12.5px;color:#93a5b8">点击任意处开始 · 右上角 ⏻ 注销</p></div>`,
+        );
+        intro.onclick = () => intro.remove();
+        root.append(intro);
+        setTimeout(() => intro.remove(), 3800);
+        setTimeout(() => spawn(cur, "welcome"), 450);
+      }
+      function logout() {
+        if (!cur) return;
+        cur.timers.forEach(clearInterval);
+        cur = null;
+        root.classList.remove("on");
+        root.innerHTML = "";
+        $("#dm").style.display = "flex";
+      }
+      function setClockLoop(s) {
+        const t = setInterval(() => {
+          if (!cur || cur !== s) return;
+          const d = new Date();
+          $$("#session .clock").forEach((n) => {
+            if (n.dataset.date)
+              n.innerHTML = `<b>${p2(d.getHours())}:${p2(d.getMinutes())}</b><span>${d.getMonth() + 1}月${d.getDate()}日 周${WK[d.getDay()]}</span>`;
+            else
+              n.innerHTML = `<b>${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}</b>`;
+          });
+          $$("#dm .clockdm");
+        }, 1000);
+        s.timers.push(t);
+      }
+      function toast(s, msg, ms = 2200) {
+        const t = el("div", "toast", msg);
+        s.root.append(t);
+        setTimeout(() => t.remove(), ms);
+      }
+
+      /* ============================================================ 面板 */
+      function mkClock(withDate) {
+        const c = el("div", "clock");
+        if (withDate) c.dataset.date = "1";
+        return c;
+      }
+      function buildPanel(s) {
+        const c = s.cfg,
+          f = (tag, cls, html) => {
+            const n = el(tag, cls, html);
+            s.root.append(n);
+            return n;
+          };
+        if (c.id === "gnome") {
+          const p = f("div", "panel top");
+          p.style.cssText += "height:40px;background:#121419eb;color:#e8ecf2";
+          const act = el("button", "pbtn", "活动");
+          act.onclick = (e) => {
+            openOverview(s, e);
+          };
+          p.append(act, el("div", "spacer"));
+          const mid = el("button", "pbtn");
+          mid.append(mkClock(true));
+          mid.onclick = (e) => openOverview(s, e);
+          p.append(mid);
+          p.append(el("div", "spacer"));
+          const tray = el("div", "tray");
+          const qs = el("button", "pbtn", "🌐 ▲ 🔋 ▾");
+          qs.onclick = (e) => quickSettings(s, e.currentTarget);
+          tray.append(qs);
+          p.append(tray);
+          // 热角
+          s.work.addEventListener("mousemove", (e) => {
+            if (e.clientX < 4 && e.clientY < 4 && !$(".ov", s.root))
+              openOverview(s);
+          });
+        } else if (c.id === "i3") {
+          const p = f("div", "panel bottom");
+          p.style.cssText +=
+            "height:28px;background:#0d0f13f2;color:#b9c3cd;font-family:var(--mono);font-size:12px";
+          const wsBox = el("div", "tray");
+          s.wsBox = wsBox;
+          p.append(wsBox);
+          const t = el("div", "");
+          t.style.cssText =
+            "flex:1;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis";
+          s.titleFns.push(
+            (w) =>
+              (t.textContent = w
+                ? `▸ ${w.dataset.title} — ${c.apps.term || "xterm"}`
+                : "i3 — 按 Alt+Enter 开终端"),
+          );
+          p.append(t);
+          const st = el(
+            "div",
+            "tray",
+            "",
+            `<span style="margin-right:12px">⬤ eth | 📶 | 🔋 100%</span>`,
+          );
+          st.append(mkClock(false));
+          p.append(st);
+          paintI3ws(s);
+        } else if (c.id === "sway") {
+          const p = f("div", "panel top");
+          p.style.cssText +=
+            "height:38px;background:transparent;padding:5px 8px;color:#cfe8e4;font-family:var(--mono);font-size:12px";
+          const mk = (html) => {
+            const b = el("div", "");
+            b.style.cssText =
+              "background:#0f161ad9;border:1px solid #ffffff14;border-radius:9px;display:flex;align-items:center;gap:8px;padding:0 12px;height:100%";
+            b.innerHTML = html;
+            return b;
+          };
+          s.wsBox = mk("");
+          p.append(s.wsBox);
+          const t = mk("");
+          t.style.flex = "1";
+          t.style.justifyContent = "center";
+          s.titleFns.push(
+            (w) =>
+              (t.textContent = w ? w.dataset.title : "sway · Alt+Enter = 终端"),
+          );
+          p.append(t);
+          const rt = mk("");
+          rt.append(el("span", "", "🔋 97% · 📶"), mkClock(false));
+          p.append(rt);
+          paintI3ws(s);
+        } else if (c.id === "cosmic") {
+          const top = f("div", "panel top");
+          top.style.cssText += "height:38px;background:#0e1013ee;color:#e8ecf2";
+          const wsb = el("button", "pbtn", "⧉ 工作区 ▾");
+          wsb.onclick = (e) => cosmicWS(s, e.currentTarget);
+          top.append(wsb);
+          const mid = el("button", "pbtn");
+          mid.append(mkClock(true));
+          mid.onclick = () => cosmicWS(s);
+          top.append(mid, el("div", "spacer"));
+          const stat = el("button", "pbtn", "🔊 🔋 ▾");
+          stat.onclick = (e) => cosmicStatus(s, e.currentTarget);
+          const lau = el("button", "pbtn", "⌕ 启动器");
+          lau.onclick = () => cosmicLauncher(s);
+          top.append(lau, stat);
+          const dock = f("div", "panel bottom");
+          dock.style.cssText +=
+            "height:58px;background:transparent;justify-content:center;pointer-events:none";
+          const bar = el("div", "");
+          bar.style.cssText =
+            "display:flex;gap:10px;background:#0e1013ee;border:1px solid #ffffff16;border-radius:16px;padding:7px 14px;pointer-events:auto";
+          s.dock = bar;
+          dock.append(bar);
+        } else {
+          // 通用单/双面板
+          const mkPanel = (pos) => {
+            const p = f("div", "panel " + pos);
+            const dark = !c.light;
+            p.style.cssText += `height:${c.id === "mate" && pos === "top" ? 34 : 40}px;background:${c.light ? "#e8ebf0f2" : "#14171cf0"};color:${c.light ? "#2b323b" : "#dde5ee"}`;
+            return p;
+          };
+          const launcher = (p, icon, label) => {
+            const b = el("button", "pbtn", `<b>${icon}</b> ${label}`);
+            b.onclick = (e) => openMenu(s, b);
+            p.append(b);
+            return b;
+          };
+          const mkTask = (p) => {
+            const t = el("div", "task");
+            p.append(t);
+            return t;
+          };
+          if (c.id === "mate") {
+            const top = mkPanel("top");
+            launcher(top, "☰", "应用程序");
+            top.append(
+              el("div", "spacer"),
+              el("div", "tray", "", "🔊 🖧 🔋"),
+              mkClock(true),
+            );
+            const bot = mkPanel("bottom");
+            s.taskEl = mkTask(bot);
+          } else {
+            const p = mkPanel(c.panel);
+            const icons = {
+              xfce: ["🐭", "Applications"],
+              cinnamon: ["▞", "菜单"],
+              plasma: ["◈", ""],
+              lxqt: ["☰", ""],
+              lxde: ["🗔", "菜单"],
+              budgie: ["◉", "Budgie 菜单"],
+            }[c.id];
+            launcher(p, icons[0], icons[1]);
+            if (c.id === "lxde") {
+              const q = el("div", "tray");
+              ["🗂", "🖥"].forEach((ic) => {
+                const b = el("button", "pbtn", ic);
+                b.onclick = () => spawn(s, ic === "🗂" ? "files" : "term");
+                q.append(b);
+              });
+              p.append(q);
+            }
+            s.taskEl = mkTask(p);
+            p.append(el("div", "spacer"), el("div", "tray", "", "🔊 🖧 🔋"));
+            if (c.id === "plasma") {
+              const pg = el("button", "pbtn", "▯▯");
+              pg.title = "虚拟桌面";
+              p.append(pg);
+            }
+            const clk = el("button", "pbtn");
+            clk.append(mkClock(true));
+            if (c.id === "plasma")
+              clk.onclick = (e) => calPopup(s, e.currentTarget);
+            p.append(clk);
+            if (c.id === "budgie") {
+              const rv = el("button", "pbtn", "❚");
+              rv.title = "Raven (Super+N)";
+              rv.onclick = () => toggleRaven(s);
+              p.append(rv);
+            }
+            if (c.id === "xfce") {
+              const ab = el("button", "pbtn", "☰");
+              ab.onclick = (e) =>
+                ctxMenu(s, e.clientX, e.clientY, [
+                  ["🔒 锁屏（模拟）", () => toast(s, "已锁屏（模拟）")],
+                  ["⏻ 注销", logout],
+                ]);
+              p.append(ab);
+            }
+          }
+        }
+        if (c.icons) addDeskIcons(s);
+      }
+      function paintI3ws(s) {
+        if (!s.wsBox) return;
+        s.wsBox.innerHTML = "";
+        for (let i = 1; i <= s.cfg.ws; i++) {
+          const b = el("button", "pbtn", String(i));
+          b.style.cssText +=
+            i === s.ws
+              ? `background:${s.cfg.id === "sway" ? "#2ec4b6" : "#285577"};color:#fff;border-radius:5px;font-family:var(--mono)`
+              : "";
+          b.onclick = () => setWS(s, i);
+          s.wsBox.append(b);
+        }
+      }
+      function addDeskIcons(s) {
+        [
+          ["🗂", "主目录", "files"],
+          ["🗑", "回收站", null],
+        ].forEach(([ic, lb, app], i) => {
+          const d = el("div", "desk-ico", `<i>${ic}</i>${lb}`);
+          d.style.left = 16 + "px";
+          d.style.top = 16 + i * 86 + "px";
+          d.ondblclick = () => (app ? spawn(s, app) : toast(s, "回收站是空的"));
+          s.root.append(d);
+        });
+      }
+
+      /* ============================================================ 窗口管理 */
+      function focusWin(s, w) {
+        s.wins.forEach((x) => x.classList.remove("focused"));
+        w.classList.add("focused");
+        w.style.zIndex = ++s.Z;
+        s.focused = w;
+        s.focusedIdx = s.wins.indexOf(w);
+        updateTask(s);
+      }
+      function closeWin(s, w) {
+        w.remove();
+        s.wins = s.wins.filter((x) => x !== w);
+        if (s.focused === w)
+          s.focused =
+            s.wins
+              .filter((x) => x.dataset.ws == s.ws && !x.dataset.min)
+              .pop() || null;
+        if (s.cfg.tiling) layoutTiles(s);
+        updateTask(s);
+      }
+      function spawn(s, appid) {
+        const c = s.cfg;
+        const names = {
+          term: [c.apps.term, "🖥"],
+          files: [c.apps.files, "🗂"],
+          editor: [c.apps.editor, "📝"],
+          man: ["Man 手册", "📖"],
+          about: ["关于本机", "ℹ️"],
+          welcome: ["欢迎", "👋"],
+        }[appid];
+        if (!names[0]) return;
+        const w = el("section", "win" + (c.tiling ? " tile-strip" : ""));
+        const sizes = {
+          term: [600, 380],
+          files: [560, 380],
+          editor: [540, 380],
+          man: [720, 470],
+          about: [480, 420],
+          welcome: [520, 420],
+        }[appid];
+        w.dataset.app = appid;
+        w.dataset.ws = s.ws;
+        w.dataset.title = names[0];
+        const tlb = el("div", "tlb");
+        const deco = c.tiling
+          ? "strip"
+          : c.id === "gnome" || c.id === "budgie" || c.id === "cosmic"
+            ? "csd"
+            : "classic";
+        let titlePart;
+        if (deco === "csd") {
+          titlePart = el("div", "tt");
+          titlePart.style.textAlign = "center";
+          tlb.append(titlePart);
+        } else if (deco === "strip") {
+          titlePart = el("div", "tt");
+          tlb.append(titlePart);
+        } else {
+          tlb.append(el("span", "tico", names[1]));
+          titlePart = el("div", "tt");
+          tlb.append(titlePart);
+        }
+        titlePart.textContent = names[0];
+        if (deco !== "strip") {
+          const wrap = el("div", "");
+          wrap.style.display = "flex";
+          wrap.style.gap = "6px";
+          if (c.id !== "gnome") {
+            const mn = el("button", "wbtn", "–");
+            mn.title = "最小化";
+            mn.onclick = (e) => {
+              e.stopPropagation();
+              w.dataset.min = "1";
+              w.style.display = "none";
+              updateTask(s);
+            };
+            wrap.append(mn);
+          }
+          const mx = el("button", "wbtn", "□");
+          mx.title = "最大化";
+          mx.onclick = (e) => {
+            e.stopPropagation();
+            toggleMax(s, w);
+          };
+          wrap.append(mx);
+          const cl = el("button", "wbtn x", "✕");
+          cl.title = "关闭";
+          cl.onclick = (e) => {
+            e.stopPropagation();
+            closeWin(s, w);
+          };
+          wrap.append(cl);
+          if (deco === "csd") {
+            tlb.prepend(el("span", "tico", names[1]));
+            tlb.append(wrap);
+          } else tlb.append(wrap);
+        }
+        w.append(tlb);
+        const body = el("div", "wbody");
+        body.append(appContent(s, appid, w));
+        w.append(body);
+        if (appid === "term") body.style.background = "#0c0f14";
+        s.work.append(w);
+        // 尺寸与位置
+        const W = s.work.clientWidth,
+          H = s.work.clientHeight;
+        w.style.width = Math.min(sizes[0], W - 60) + "px";
+        w.style.height = Math.min(sizes[1], H - 50) + "px";
+        const off = s.winSeq++ % 6;
+        w.style.left = Math.max(16, 60 + off * 34) + "px";
+        w.style.top = Math.max(10, 36 + off * 28) + "px";
+        s.wins.push(w);
+        tlb.addEventListener("pointerdown", (e) => {
+          if (e.target.closest(".wbtn")) return;
+          focusWin(s, w);
+          if (c.tiling && s.tilingOn) {
+            if (c.id === "cosmic")
+              toast(
+                s,
+                "平铺模式：窗口由布局器管理（Super+Y 关闭平铺可拖动）",
+                2600,
+              );
+            return;
+          }
+          if (w.dataset.max) return;
+          const sx = e.clientX - w.offsetLeft,
+            sy = e.clientY - w.offsetTop;
+          tlb.setPointerCapture(e.pointerId);
+          const mv = (ev) => {
+            w.style.left =
+              Math.max(
+                -w.offsetWidth + 80,
+                Math.min(ev.clientX - sx, s.work.clientWidth - 80),
+              ) + "px";
+            w.style.top =
+              Math.max(0, Math.min(ev.clientY - sy, s.work.clientHeight - 34)) +
+              "px";
+          };
+          const up = () => {
+            tlb.removeEventListener("pointermove", mv);
+            tlb.removeEventListener("pointerup", up);
+          };
+          tlb.addEventListener("pointermove", mv);
+          tlb.addEventListener("pointerup", up);
+        });
+        w.addEventListener("pointerdown", () => focusWin(s, w));
+        focusWin(s, w);
+        if (c.tiling && s.tilingOn) layoutTiles(s);
+        if (c.id === "cosmic" && s.tilingOn) layoutTiles(s);
+        return w;
+      }
+      function toggleMax(s, w) {
+        if (w.dataset.max) {
+          delete w.dataset.max;
+          const r = JSON.parse(w.dataset.prev);
+          Object.assign(w.style, r);
+          w.dataset.max = "";
+        } else {
+          w.dataset.prev = JSON.stringify({
+            left: w.style.left,
+            top: w.style.top,
+            width: w.style.width,
+            height: w.style.height,
+          });
+          w.dataset.max = "1";
+          w.style.left = "0";
+          w.style.top = "0";
+          w.style.width = "100%";
+          w.style.height = "100%";
+        }
+      }
+      function layoutTiles(s) {
+        const wins = s.wins.filter(
+          (w) => w.dataset.ws == s.ws && !w.dataset.min,
+        );
+        if (!wins.length) {
+          s.titleFns.forEach((f) => f(null));
+          return;
+        }
+        const W = s.work.clientWidth,
+          H = s.work.clientHeight,
+          g = s.cfg.gap || 8,
+          p = 6;
+        const rects = [];
+        if (wins.length === 1) rects.push([p, p, W - 2 * p, H - 2 * p]);
+        else if (wins.length === 2) {
+          const hw = (W - 3 * p) / 2;
+          rects.push([p, p, hw, H - 2 * p], [p * 2 + hw, p, hw, H - 2 * p]);
+        } else {
+          const mw = (W - 3 * p) * 0.52;
+          rects.push([p, p, mw, H - 2 * p]);
+          const n = wins.length - 1,
+            rh = (H - p * (n + 1)) / n;
+          for (let i = 0; i < n; i++)
+            rects.push([p * 2 + mw, p + i * (rh + p), W - mw - p * 3, rh]);
+        }
+        wins.forEach((w, i) => {
+          const [x, y, ww, hh] = rects[i];
+          w.style.left = x + "px";
+          w.style.top = y + "px";
+          w.style.width = ww + "px";
+          w.style.height = hh + "px";
+        });
+        if (!s.focused || !wins.includes(s.focused)) focusWin(s, wins[0]);
+        updateTask(s);
+      }
+      function updateTask(s) {
+        if (s.taskEl) {
+          s.taskEl.innerHTML = "";
+          s.wins
+            .filter((w) => w.dataset.ws == s.ws)
+            .forEach((w) => {
+              const b = el(
+                "button",
+                w.classList.contains("focused") && !w.dataset.min ? "act" : "",
+                `${w.dataset.title}`,
+              );
+              b.onclick = () => {
+                if (w.dataset.min) {
+                  delete w.dataset.min;
+                  w.style.display = "";
+                  focusWin(s, w);
+                  if (s.cfg.tiling) layoutTiles(s);
+                } else if (s.focused === w) {
+                  w.dataset.min = "1";
+                  w.style.display = "none";
+                } else focusWin(s, w);
+                updateTask(s);
+              };
+              s.taskEl.append(b);
+            });
+        }
+        if (s.dock) {
+          s.dock.innerHTML = "";
+          ["term", "files", "editor", "man", "about"].forEach((app) => {
+            if (!dockAppOk(s, app)) return;
+            const ic = {
+              term: "🖥",
+              files: "🗂",
+              editor: "📝",
+              man: "📖",
+              about: "ℹ️",
+            }[app];
+            const b = el("button", "");
+            b.textContent = ic;
+            b.style.cssText =
+              "position:relative;width:44px;height:44px;border-radius:12px;border:none;background:#ffffff10;font-size:20px;transition:transform .13s,background .13s";
+            b.onmouseenter = () => (b.style.background = "#ffffff24");
+            b.onmouseleave = () => (b.style.background = "#ffffff10");
+            b.onmouseenter2 = null;
+            const running = s.wins.some((w) => w.dataset.app === app);
+            if (running) {
+              const d = el("span");
+              d.style.cssText = `position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:${s.cfg.acc}`;
+              b.append(d);
+            }
+            b.onclick = () => {
+              const ex = s.wins.find(
+                (w) =>
+                  w.dataset.app === app &&
+                  !w.dataset.min &&
+                  w.dataset.ws == s.ws,
+              );
+              ex ? focusWin(s, ex) : spawn(s, app);
+            };
+            s.dock.append(b);
+          });
+          const lib = el("button", "", "⊞");
+          lib.title = "应用库 (Super+A)";
+          lib.style.cssText =
+            "width:44px;height:44px;border-radius:12px;border:1px dashed #ffffff30;background:none;color:#cdd8e4;font-size:18px";
+          lib.onclick = () => appLibrary(s);
+          s.dock.append(lib);
+        }
+        s.titleFns.forEach((f) =>
+          f(s.focused && !s.focused.dataset.min ? s.focused : null),
+        );
+        if (s.cfg.id === "i3" || s.cfg.id === "sway") paintI3ws(s);
+      }
+      function dockAppOk(s, app) {
+        const c = s.cfg;
+        return !!(
+          app === "term" ||
+          (app === "files" && c.apps.files) ||
+          (app === "editor" && c.apps.editor) ||
+          app === "man" ||
+          app === "about"
+        );
+      }
+      function setWS(s, n) {
+        s.ws = n;
+        if (s.cfg.tiling) layoutTiles(s);
+        updateTask(s);
+      }
+
+      /* ============================================================ 菜单 */
+      function openMenu(s, anchor) {
+        closePopups(s);
+        const r = anchor.getBoundingClientRect(),
+          rr = s.root.getBoundingClientRect();
+        const c = s.cfg;
+        let node;
+        const items = menuApps(s);
+        if (c.id === "gnome") {
+          openOverview(s);
+          return;
+        }
+        if (c.id === "cosmic") {
+          cosmicLauncher(s);
+          return;
+        }
+        const m = el("div", "menu" + (c.light ? " light" : ""));
+        const addSearch = () => {
+          const d = el("div", "m-search", "🔍");
+          const inp = el("input");
+          inp.placeholder = "搜索应用…";
+          d.append(inp);
+          m.append(d);
+          return inp;
+        };
+        const mkItem = ([id, ic, lb, sub]) => {
+          const b = el(
+            "button",
+            "m-item",
+            `<span class="mi">${ic}</span>${lb}${sub ? `<small>${sub}</small>` : ""}`,
+          );
+          b.onclick = () => {
+            closePopups(s);
+            spawn(s, id);
+          };
+          return b;
+        };
+        if (c.id === "xfce" || c.id === "cinnamon") {
+          const inp = addSearch();
+          const cols = el("div", "m-cols");
+          const cats = el("div", "m-cats");
+          const apps = el("div", "m-apps");
+          ["收藏", "系统", "办公", "图形", "终端"].forEach((n, i) => {
+            const d = el("div", i ? "" : "on", n);
+            cats.append(d);
+          });
+          items.forEach((it) => apps.append(mkItem(it)));
+          inp.oninput = () => {
+            const q = inp.value.trim().toLowerCase();
+            apps.innerHTML = "";
+            items
+              .filter((it) => !q || it[2].toLowerCase().includes(q))
+              .forEach((it) => apps.append(mkItem(it)));
+          };
+          cols.append(cats, apps);
+          m.append(cols);
+          const ft = el("div", "m-foot");
+          ft.append(
+            el("button", "", "📖 Man 手册"),
+            el("button", "", "⏻ 注销"),
+          );
+          ft.children[0].onclick = () => {
+            closePopups(s);
+            spawn(s, "man");
+          };
+          ft.children[1].onclick = logout;
+          m.append(ft);
+        } else if (c.id === "plasma") {
+          const hd = el("div", "", "guest");
+          hd.style.cssText =
+            "display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #ffffff16";
+          hd.append(
+            el("div", "", "👤"),
+            (() => {
+              const d = el("div");
+              d.append(
+                el("b", "", "guest"),
+                el(
+                  "div",
+                  "",
+                  `<small style="color:#7d8ea3">${c.name} 会话</small>`,
+                ),
+              );
+              return d;
+            })(),
+          );
+          m.append(hd);
+          const g = el("div", "m-grid");
+          items.forEach(([id, ic, lb]) => {
+            const b = el("button", null, `<span class="gi">${ic}</span>${lb}`);
+            b.onclick = () => {
+              closePopups(s);
+              spawn(s, id);
+            };
+            g.append(b);
+          });
+          m.append(g);
+          const inp = addSearch();
+          m.append(inp);
+          inp.oninput = () => {
+            const q = inp.value.toLowerCase();
+            $$(".m-grid button", m).forEach(
+              (b, i) =>
+                (b.style.display = items[i][2].toLowerCase().includes(q)
+                  ? ""
+                  : "none"),
+            );
+          };
+        } else {
+          // mate / lxqt / lxde / budgie
+          if (c.id === "budgie") (addSearch(), m.lastChild && 0);
+          const list = el("div", "");
+          list.style.padding = "6px";
+          items.forEach((it) => list.append(mkItem(it)));
+          m.append(list);
+          const ft = el("div", "m-foot");
+          ft.append(
+            el("button", "", "📖 Man 手册"),
+            el("button", "", "⏻ 注销"),
+          );
+          ft.children[0].onclick = () => {
+            closePopups(s);
+            spawn(s, "man");
+          };
+          ft.children[1].onclick = logout;
+          m.append(ft);
+          if (c.id === "budgie") {
+            const inp = $("input", m);
+            if (inp)
+              inp.oninput = () => {
+                const q = inp.value.toLowerCase();
+                $$(".m-item", m).forEach(
+                  (b, i) =>
+                    (b.style.display = items[i][2].toLowerCase().includes(q)
+                      ? ""
+                      : "none"),
+                );
+              };
+          }
+        }
+        mountPopup(s, m, r, true);
+      }
+      function menuApps(s) {
+        const c = s.cfg,
+          a = [];
+        if (c.apps.term) a.push(["term", "🖥", c.apps.term, "terminal"]);
+        if (c.apps.files) a.push(["files", "🗂", c.apps.files, "files"]);
+        if (c.apps.editor) a.push(["editor", "📝", c.apps.editor, "editor"]);
+        a.push([
+          "man",
+          "📖",
+          "Man 手册",
+          "man " + MAN[c.id].name.replace(/\(\d\)/, ""),
+        ]);
+        a.push(["about", "ℹ️", "关于本机", "about"]);
+        return a;
+      }
+      function mountPopup(s, node, r, alignLeft) {
+        const pop = el("div", "popup");
+        pop.append(node);
+        s.root.append(pop);
+        const pw = node.offsetWidth || 380,
+          ph = node.offsetHeight || 300;
+        let x = r.left,
+          y = r.bottom + 6;
+        if (r.top > window.innerHeight / 2) y = r.top - ph - 6;
+        x = Math.max(6, Math.min(x, window.innerWidth - pw - 8));
+        y = Math.max(6, y);
+        pop.style.left = x + "px";
+        pop.style.top = y + "px";
+        s.popups.push(pop);
+      }
+      function closePopups(s) {
+        if (!s) return;
+        s.popups.forEach((p) => p.remove());
+        s.popups = [];
+        const ov = $$(".ov,.dmenu,.wofi,.raven", s.root);
+        ov.forEach((n) => {
+          if (!n.dataset.keep) n.remove();
+        });
+      }
+      document.addEventListener(
+        "pointerdown",
+        (e) => {
+          if (!cur) return;
+          if (
+            e.target.closest(".popup") ||
+            e.target.closest(".pbtn") ||
+            e.target.closest(".wofi") ||
+            e.target.closest(".dmenu")
+          )
+            return;
+          closePopups(cur);
+        },
+        true,
+      );
+
+      /* 桌面右键 */
+      document.addEventListener("contextmenu", (e) => {
+        if (!cur) return;
+        if (cur.cfg.tiling) {
+          e.preventDefault();
+          return;
+        }
+        if (e.target.closest(".win,.panel,.popup,.ov")) return;
+        e.preventDefault();
+        closePopups(cur);
+        const items = [
+          ["🖥 打开终端", () => spawn(cur, "term")],
+          ["🗂 文件管理器", () => cur.cfg.apps.files && spawn(cur, "files")],
+          [
+            "🎨 更换壁纸",
+            () => {
+              const wp = $(".wp", cur.root);
+              wp.style.filter = wp.style.filter
+                ? ""
+                : "hue-rotate(50deg) saturate(1.15)";
+              toast(cur, "壁纸已切换（模拟）");
+            },
+          ],
+          ["📖 Man 手册", () => spawn(cur, "man")],
+          ["ℹ️ 关于本机", () => spawn(cur, "about")],
+        ];
+        ctxMenu(cur, e.clientX, e.clientY, items);
+      });
+      function ctxMenu(s, x, y, items) {
+        const m = el("div", "ctxmenu");
+        items.forEach(([lb, fn]) => {
+          const b = el("button", "m-item", lb);
+          b.onclick = () => {
+            m.remove();
+            s.popups = s.popups.filter((p) => p !== m);
+            fn();
+          };
+          m.append(b);
+        });
+        s.root.append(m);
+        s.popups.push(m);
+        m.style.left = Math.min(x, window.innerWidth - 220) + "px";
+        m.style.top =
+          Math.min(y, window.innerHeight - m.offsetHeight - 10) + "px";
+      }
+
+      /* ============================================================ 特色覆盖层 */
+      function openOverview(s) {
+        if ($(".gnome-ov", s.root)) {
+          closePopups(s);
+          return;
+        }
+        closePopups(s);
+        const ov = el("div", "ov gnome-ov");
+        ov.style.top = s.cfg.chrome.t + "px";
+        ov.style.bottom = "0";
+        ov.style.position = "absolute";
+        ov.style.left = "0";
+        ov.style.right = "0";
+        const search = el("div", "ov-search", "🔍");
+        const inp = el("input");
+        inp.placeholder = "键入以搜索应用…";
+        search.append(inp);
+        ov.append(search);
+        const refresh = () => {
+          $(".clones", ov)?.remove();
+          $(".appgrid", ov)?.remove();
+          $(".ws-row", ov)?.remove();
+          const cl = el("div", "clones");
+          const wins = s.wins.filter(
+            (w) => w.dataset.ws == s.ws && !w.dataset.min,
+          );
+          if (!wins.length)
+            cl.append(
+              el(
+                "div",
+                "empty-hint",
+                "这里还没有打开的窗口。<br>用左侧 Dock 或 <b>Super+A</b> 应用网格打开一个应用试试。",
+              ),
+            );
+          wins.forEach((w) => {
+            const c = el("div", "clone");
+            c.append(
+              el("div", "c-tlb", `${w.dataset.title}`),
+              el("div", "c-body", "⬒"),
+            );
+            c.onclick = () => {
+              focusWin(s, w);
+              closePopups(s);
+            };
+            cl.append(c);
+          });
+          ov.append(cl);
+          const wr = el("div", "ws-row");
+          for (let i = 1; i <= s.cfg.ws; i++) {
+            const d = el("div", i === s.ws ? "on" : "", "工作区 " + i);
+            d.onclick = () => {
+              setWS(s, i);
+              openOverview(s);
+              openOverview(s);
+            };
+            wr.append(d);
+          }
+          ov.append(wr);
+          const q = inp.value.trim().toLowerCase();
+          if (q) {
+            const hits = menuApps(s).filter((a) =>
+              a[2].toLowerCase().includes(q),
+            );
+            const g = el("div", "appgrid");
+            g.style.paddingTop = "16px";
+            hits.forEach(([id, ic, lb]) => {
+              const b = el(
+                "button",
+                null,
+                `<span class="gi">${ic}</span>${lb}`,
+              );
+              b.onclick = () => {
+                closePopups(s);
+                spawn(s, id);
+              };
+              g.append(b);
+            });
+            ov.append(g);
+          }
+        };
+        inp.oninput = refresh;
+        const dock = el("div", "ov-dock");
+        menuApps(s).forEach(([id, ic]) => {
+          const b = el(
+            "button",
+            s.wins.some((w) => w.dataset.app === id) ? "run" : "",
+            ic,
+          );
+          b.onclick = () => {
+            closePopups(s);
+            spawn(s, id);
+          };
+          dock.append(b);
+        });
+        ov.append(dock);
+        s.root.append(ov);
+        refresh();
+        setTimeout(() => inp.focus(), 60);
+      }
+      function appLibrary(s) {
+        if ($(".appgrid", s.root)) {
+          closePopups(s);
+          return;
+        }
+        closePopups(s);
+        const g = el("div", "ov appgrid");
+        g.append(
+          el(
+            "h2",
+            "",
+            `应用库 <span style="font-size:14px;color:#8fa0b2">(Super+A)</span>`,
+          ),
+        );
+        const grid = el("div", "m-grid");
+        menuApps(s).forEach(([id, ic, lb]) => {
+          const b = el("button", null, `<span class="gi">${ic}</span>${lb}`);
+          b.onclick = () => {
+            closePopups(s);
+            spawn(s, id);
+          };
+          grid.append(b);
+        });
+        g.append(grid);
+        s.root.append(g);
+      }
+      function cosmicLauncher(s) {
+        if ($(".wofi", s.root)) {
+          closePopups(s);
+          return;
+        }
+        closePopups(s);
+        const w = el("div", "wofi");
+        const inp = el("input");
+        inp.placeholder = "启动器 — 键入以搜索（Super+/）";
+        inp.style.cssText =
+          "width:100%;background:none;border:none;border-bottom:1px solid #ffffff22;outline:none;color:#e8f4f2;padding:14px 18px;font-family:var(--mono);font-size:15px";
+        const list = el("div");
+        const items = menuApps(s);
+        let idx = 0;
+        const paint = () => {
+          const q = inp.value.trim().toLowerCase();
+          list.innerHTML = "";
+          idx = 0;
+          items
+            .filter((a) => !q || a[2].toLowerCase().includes(q))
+            .forEach(([id, ic, lb], i) => {
+              const d = el(
+                "div",
+                "dl" + (i === idx ? " sel" : ""),
+                `<span>${ic}</span> ${lb}`,
+              );
+              d.onclick = () => {
+                closePopups(s);
+                spawn(s, id);
+              };
+              list.append(d);
+            });
+          if (!list.children.length) list.append(el("div", "dl", "（无匹配）"));
+        };
+        inp.oninput = paint;
+        inp.onkeydown = (e) => {
+          e.stopPropagation();
+          if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+            e.preventDefault();
+            idx =
+              (idx + (e.key === "ArrowDown" ? 1 : -1) + list.children.length) %
+              Math.max(1, list.children.length);
+            $$(".dl", list).forEach((d, i) =>
+              d.classList.toggle("sel", i === idx),
+            );
+          }
+          if (e.key === "Enter") {
+            const t = $$(".dl", list)[idx];
+            t && t.click();
+          }
+          if (e.key === "Escape") closePopups(s);
+        };
+        w.append(inp, list);
+        s.root.append(w);
+        paint();
+        setTimeout(() => inp.focus(), 50);
+      }
+      function cosmicWS(s, anchor) {
+        closePopups(s);
+        const m = el("div", "menu");
+        m.style.width = "240px";
+        const t = el("div", "", "工作区");
+        t.style.cssText = "padding:10px 12px;color:#8fa0b2;font-size:12px";
+        m.append(t);
+        for (let i = 1; i <= s.cfg.ws; i++) {
+          const b = el(
+            "button",
+            "m-item",
+            `⧉ 工作区 ${i}${i === s.ws ? " <small>● 当前</small>" : ""}`,
+          );
+          b.onclick = () => {
+            setWS(s, i);
+            closePopups(s);
+          };
+          m.append(b);
+        }
+        if (anchor) {
+          const r = anchor.getBoundingClientRect();
+          mountPopup(s, m, r);
+        } else {
+          const p = el("div", "popup");
+          p.append(m);
+          s.root.append(p);
+          p.style.left = "8px";
+          p.style.top = "44px";
+          s.popups.push(p);
+        }
+      }
+      function cosmicStatus(s, anchor) {
+        closePopups(s);
+        const m = el("div", "qs");
+        const g = el("div", "qs-grid");
+        [
+          ["📶", "Wi-Fi"],
+          ["🔵", "蓝牙"],
+          ["🌙", "夜间模式"],
+          ["✈️", "飞行模式"],
+          ["🔋", "省电"],
+          ["🔒", "锁屏"],
+        ].forEach(([ic, lb]) => {
+          const b = el("button", "", `<i>${ic}</i>${lb}`);
+          b.onclick = () => {
+            b.classList.toggle("on");
+          };
+          g.append(b);
+        });
+        m.append(g);
+        const sl = (ic, v) => {
+          const d = el("div", "qs-slider", ic);
+          const r = el("input");
+          r.type = "range";
+          r.min = 0;
+          r.max = 100;
+          r.value = v;
+          d.append(r);
+          return d;
+        };
+        m.append(sl("🔆", 80), sl("🔊", 60));
+        const tile = el("button", "");
+        tile.className = "m-item";
+        tile.style.margin = "4px";
+        const tset = () =>
+          (tile.innerHTML = `<span class="mi">⊞</span>窗口平铺 <small>${s.tilingOn ? "已开启 (Super+Y)" : "已关闭 (Super+Y)"}</small>`);
+        tset();
+        tile.onclick = () => {
+          toggleCosmicTiling(s);
+          tset();
+        };
+        m.append(tile);
+        const out = el("button", "m-item", '<span class="mi">⏻</span>注销会话');
+        out.onclick = logout;
+        m.append(out);
+        mountPopup(s, m, anchor.getBoundingClientRect());
+      }
+      function toggleCosmicTiling(s) {
+        s.tilingOn = !s.tilingOn;
+        if (s.tilingOn) {
+          layoutTiles(s);
+          toast(s, "自动平铺：开启 —— 新窗口将自动切分");
+        } else {
+          toast(s, "自动平铺：关闭 —— 窗口可自由拖动");
+          s.wins.forEach((w, i) => {
+            w.style.left = 40 + (i % 5) * 40 + "px";
+            w.style.top = 30 + (i % 5) * 30 + "px";
+            w.style.width = "560px";
+            w.style.height = "360px";
+          });
+          updateTask(s);
+        }
+      }
+      function quickSettings(s, anchor) {
+        closePopups(s);
+        const m = el("div", "qs");
+        const g = el("div", "qs-grid");
+        [
+          ["📶", "Wi-Fi", 1],
+          ["🔵", "蓝牙", 1],
+          ["🌙", "夜间模式", 0],
+          ["🔕", "勿扰", 0],
+          ["📍", "定位", 0],
+          ["✈️", "飞行", 0],
+        ].forEach(([ic, lb, on]) => {
+          const b = el("button", on ? "on" : "", `<i>${ic}</i>${lb}`);
+          b.onclick = () => b.classList.toggle("on");
+          g.append(b);
+        });
+        m.append(g);
+        m.append(
+          (() => {
+            const d = el("div", "qs-slider", "🔆");
+            const r = el("input");
+            r.type = "range";
+            r.value = 75;
+            d.append(r);
+            return d;
+          })(),
+        );
+        m.append(
+          (() => {
+            const d = el("div", "qs-slider", "🔊");
+            const r = el("input");
+            r.type = "range";
+            r.value = 55;
+            d.append(r);
+            return d;
+          })(),
+        );
+        const row = el("div", "");
+        row.style.cssText =
+          "display:flex;justify-content:space-between;margin-top:10px";
+        const help = el("button", "m-item", "⌨ 快捷键");
+        help.onclick = () => {
+          closePopups(s);
+          helpOverlay(s);
+        };
+        const out = el("button", "m-item", "⏻ 注销");
+        out.onclick = logout;
+        row.append(help, out);
+        m.append(row);
+        mountPopup(s, m, anchor.getBoundingClientRect());
+      }
+      function calPopup(s, anchor) {
+        closePopups(s);
+        const m = el("div", "menu");
+        m.style.width = "300px";
+        m.append(calNode());
+        mountPopup(s, m, anchor.getBoundingClientRect());
+      }
+      function calNode() {
+        const d = new Date(),
+          y = d.getFullYear(),
+          mo = d.getMonth();
+        const first = new Date(y, mo, 1).getDay(),
+          days = new Date(y, mo + 1, 0).getDate();
+        const c = el("div", "cal");
+        c.append(
+          el(
+            "div",
+            "ch",
+            `<span>${y}年${mo + 1}月</span><small style="color:#7d8ea3">今天 ${d.getDate()} 日</small>`,
+          ),
+        );
+        const g = el("div", "cg");
+        "日一二三四五六".split("").forEach((w) => g.append(el("i", "hd", w)));
+        for (let i = 0; i < first; i++) g.append(el("i"));
+        for (let i = 1; i <= days; i++)
+          g.append(el("i", i === d.getDate() ? "today" : "", String(i)));
+        c.append(g);
+        return c;
+      }
+      function toggleRaven(s) {
+        const ex = $(".raven", s.root);
+        if (ex) {
+          ex.remove();
+          return;
+        }
+        const rv = el("div", "raven");
+        const hd = el("div", "");
+        hd.style.cssText = "display:flex;border-bottom:1px solid #ffffff16";
+        const t1 = el("button", "pbtn act", "通知"),
+          t2 = el("button", "pbtn", "小程序");
+        hd.append(t1, t2);
+        rv.append(hd);
+        const body = el("div", "");
+        body.style.cssText = "flex:1;overflow:auto";
+        rv.append(body);
+        const notifications = () => {
+          body.innerHTML = "";
+          body.append(
+            el(
+              "div",
+              "noti",
+              "<b>Budgie 欢迎</b><p>这里是 Raven——Budgie 的通知与快捷中心。</p><small>刚刚</small>",
+            ),
+          );
+          body.append(
+            el(
+              "div",
+              "noti",
+              "<b>提示</b><p>按 <b>Super+N</b> 可以随时呼出/收起 Raven。</p><small>2 分钟前</small>",
+            ),
+          );
+          const clr = el("button", "m-item", "🧹 清除全部通知");
+          clr.onclick = () => {
+            body.innerHTML =
+              '<div class="empty-hint" style="padding:40px 0">没有新通知 ✨</div>';
+          };
+          body.append(clr);
+        };
+        const applets = () => {
+          body.innerHTML = "";
+          body.append(calNode());
+          const g = el("div", "qs-grid");
+          g.style.padding = "14px";
+          [
+            ["📶", "Wi-Fi", 1],
+            ["🔵", "蓝牙", 1],
+            ["🌙", "夜灯", 0],
+            ["🔋", "电池", 1],
+            ["🎧", "音频", 1],
+            ["⏱", "计时", 0],
+          ].forEach(([ic, lb, on]) => {
+            const b = el("button", on ? "on" : "", `<i>${ic}</i>${lb}`);
+            b.onclick = () => b.classList.toggle("on");
+            g.append(b);
+          });
+          body.append(g);
+        };
+        t1.onclick = () => {
+          t1.classList.add("act");
+          t2.classList.remove("act");
+          notifications();
+        };
+        t2.onclick = () => {
+          t2.classList.add("act");
+          t1.classList.remove("act");
+          applets();
+        };
+        notifications();
+        s.root.append(rv);
+      }
+      function dmenuBar(s, style) {
+        closePopups(s);
+        const items = [
+          ...menuApps(s).map((a) => ({
+            lb: a[2],
+            ic: a[1],
+            run: () => spawn(s, a[0]),
+          })),
+          { lb: "注销会话", ic: "⏻", run: logout },
+          { lb: "Man 手册", ic: "📖", run: () => spawn(s, "man") },
+        ];
+        let box, inp, list;
+        if (style === "i3") {
+          box = el("div", "dmenu");
+          inp = el("input");
+          inp.placeholder = "dmenu_run — 输入命令或应用名";
+          list = el("div");
+          box.append(inp, list);
+        } else {
+          box = el("div", "wofi");
+          inp = el("input");
+          inp.placeholder = "wofi — 搜索";
+          list = el("div");
+          box.append(inp, list);
+        }
+        s.root.append(box);
+        let idx = 0;
+        const paint = () => {
+          const q = inp.value.toLowerCase();
+          list.innerHTML = "";
+          idx = 0;
+          items
+            .filter((it) => !q || it.lb.toLowerCase().includes(q))
+            .forEach((it, i) => {
+              const d = el(
+                "div",
+                "dl" + (i === idx ? " sel" : ""),
+                `${it.ic} ${it.lb}`,
+              );
+              d.onclick = () => {
+                box.remove();
+                it.run();
+              };
+              list.append(d);
+            });
+          if (!list.children.length) list.append(el("div", "dl", "（无匹配）"));
+        };
+        inp.oninput = paint;
+        inp.onkeydown = (e) => {
+          e.stopPropagation();
+          if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+            e.preventDefault();
+            idx =
+              (idx + (e.key === "ArrowDown" ? 1 : -1) + list.children.length) %
+              Math.max(1, list.children.length);
+            $$(".dl", list).forEach((d, i) =>
+              d.classList.toggle("sel", i === idx),
+            );
+          } else if (e.key === "Enter") {
+            $$(".dl", list)[idx]?.click();
+          } else if (e.key === "Escape") box.remove();
+        };
+        paint();
+        setTimeout(() => inp.focus(), 40);
+      }
+      function helpOverlay(s) {
+        if ($(".help-ov", s.root)) {
+          closePopups(s);
+          return;
+        }
+        const ov = el("div", "ov help-ov");
+        const card = el("div", "help-card");
+        card.append(
+          el("h3", null, `${s.cfg.name} · 快捷键与操作`),
+          el(
+            "div",
+            "sub",
+            "提示：浏览器/系统可能拦截个别 Super 组合键——面板上的按钮永远可用。",
+          ),
+        );
+        s.cfg.keys.forEach(([k, d]) =>
+          card.append(
+            el("div", "krow", `<b><kbd>${esc(k)}</kbd></b><span>${d}</span>`),
+          ),
+        );
+        card.append(
+          el("div", "krow", "<b><kbd>？</kbd></b><span>显示/关闭本帮助</span>"),
+        );
+        card.append(
+          el("div", "krow", "<b><kbd>Esc</kbd></b><span>关闭菜单与弹层</span>"),
+        );
+        const ok = el("button", "");
+        ok.textContent = "知道了";
+        ok.style.cssText =
+          "margin-top:18px;background:var(--acc);border:none;color:#081018;padding:9px 26px;border-radius:8px;font-weight:600";
+        ok.onclick = () => ov.remove();
+        card.append(ok);
+        ov.append(card);
+        s.root.append(ov);
+      }
+      function exitDialog(s) {
+        const ov = el(
+          "div",
+          "ov exitd",
+          `<div class="card"><h3>退出 ${s.cfg.name}？</h3><p>确认后将注销当前会话（Mod+Shift+e）</p><button class="ok">退出 (Enter)</button><button class="no">取消 (Esc)</button></div>`,
+        );
+        $(".ok", ov).onclick = logout;
+        $(".no", ov).onclick = () => ov.remove();
+        const kh = (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            document.removeEventListener("keydown", kh, true);
+            logout();
+          }
+          if (e.key === "Escape") {
+            document.removeEventListener("keydown", kh, true);
+            ov.remove();
+          }
+        };
+        document.addEventListener("keydown", kh, true);
+        s.root.append(ov);
+      }
+
+      /* ============================================================ 应用 */
+      function appContent(s, appid, win) {
+        switch (appid) {
+          case "term":
+            return termApp(s, win);
+          case "files":
+            return filesApp(s);
+          case "editor":
+            return editorApp(s);
+          case "man":
+            return manApp(s);
+          case "about":
+            return aboutApp(s);
+          case "welcome":
+            return welcomeApp(s);
+        }
+      }
+      function welcomeApp(s) {
+        const c = s.cfg;
+        const d = el("div", "welcome");
+        d.innerHTML = `<div class="wt">SESSION STARTED · ${c.stack[2][1]}</div><h4 style="color:${c.acc}">${c.name}</h4><p style="color:#9fb0c2">${c.cn}</p>
+  <ul>${c.tips.map((t) => `<li>${t}</li>`).join("")}<li>任何终端里输入 <kbd>man ${MAN[c.id].name.replace(/\(\d\)/, "")}</kbd>，或打开「Man 手册」应用</li></ul>
+  <div class="wb"><button class="go">打开终端</button><button class="ghost mm">📖 Man 手册</button><button class="ghost hh">⌨ 快捷键</button></div>
+  <p style="margin-top:14px;font-size:11.5px;color:#66788c">右上 ⏻ 注销返回会话选择器 · 窗口可拖动${c.tiling ? "（平铺模式下由布局器管理）" : ""}</p>`;
+        $(".go", d).onclick = () => spawn(s, "term");
+        $(".mm", d).onclick = () => spawn(s, "man");
+        $(".hh", d).onclick = () => helpOverlay(s);
+        return d;
+      }
+      function termApp(s, win) {
+        const w = el("div", "term");
+        const out = el("div", "tout");
+        const line = el("div", "tline");
+        const inp = el("input", "tin");
+        inp.spellcheck = false;
+        inp.autocomplete = "off";
+        line.append(el("span", "tps", `guest@${s.cfg.id}:~$`), inp);
+        w.append(out, line);
+        const print = (html, cls) => {
+          out.append(el("div", cls || "", html));
+          out.scrollTop = 1e7;
+        };
+        print(`欢迎使用 ${s.cfg.name} 终端。输入 <b>help</b> 查看可用命令。`);
+        const pg = MAN[s.cfg.id];
+        const cmds = {
+          help: () =>
+            print(`可用命令：
+  <b>man ${pg.name.replace(/\(\d\)/, "")}</b>   阅读本桌面的 man 手册
+  <b>ls</b>          列出可阅读的手册页
+  <b>neofetch</b>    系统信息
+  <b>whoami</b> / <b>date</b> / <b>clear</b> / <b>exit</b>`),
+          ls: () =>
+            print(
+              pg.name +
+                '  <span style="color:#66788c">（本会话内置手册）</span>',
+            ),
+          neofetch: () => {
+            const up = Math.max(1, Math.floor((Date.now() - t0) / 60000));
+            print(`<pre style="margin:0;font-family:var(--mono)">    .--.      <b style="color:${s.cfg.acc}">guest@${s.cfg.id}</b>
+   |o_o |     ─────────────────
+   |:_/ |     DE      : ${s.cfg.name}（模拟）
+  //   \\ \\    工具链   : ${s.cfg.stack[2][1]}
+ (|     | )   窗口管理 : ${s.cfg.stack[3][1]}
+ /'\\_   _/\`\\  范式    : ${s.cfg.stack[4][1]}
+ \\___)=(___/  Uptime  : ${up} 分钟</pre>`);
+          },
+          whoami: () => print("guest"),
+          date: () => print(new Date().toString()),
+          clear: () => (out.innerHTML = ""),
+          exit: () => closeWin(s, win),
+        };
+        inp.addEventListener("keydown", (e) => {
+          e.stopPropagation();
+          if (e.key !== "Enter") return;
+          const raw = inp.value.trim();
+          inp.value = "";
+          if (raw) print(`<span style="color:#6fce8f">$</span> ${esc(raw)}`);
+          if (!raw) return;
+          const [cmd, ...rest] = raw.split(/\s+/);
+          if (cmd === "man") {
+            const q = (rest[0] || "").toLowerCase();
+            if (
+              !q ||
+              pg.name.toLowerCase().startsWith(q) ||
+              s.cfg.id.startsWith(q)
+            )
+              out.append(manNode(pg));
+            else
+              print(
+                `没有 ${esc(rest[0])} 的手册条目。试试 <b>man ${pg.name.replace(/\(\d\)/, "")}</b>`,
+              );
+            out.scrollTop = 1e7;
+            return;
+          }
+          if (cmds[cmd]) cmds[cmd]();
+          else print(`bash: ${esc(cmd)}: 未找到命令（输入 <b>help</b>）`);
+        });
+        w.addEventListener("click", () => inp.focus());
+        setTimeout(() => inp.focus(), 80);
+        return w;
+      }
+      function manNode(pg) {
+        const d = el("div");
+        d.append(
+          el(
+            "div",
+            "manhead",
+            `<span>Manual page ${pg.name}</span><span>${"─".repeat(8)}▶ 100%</span>`,
+          ),
+        );
+        pg.sec.forEach(([h, ...items]) => {
+          d.append(el("div", "mh", h));
+          items.forEach((it) => {
+            if (typeof it === "string") d.append(el("div", "mp", it));
+            else if (it.tb) {
+              const t = el("div", "mtb");
+              it.tb.forEach(([k, v]) => {
+                t.append(el("div", "mk", k), el("div", "mv", v));
+              });
+              d.append(t);
+            }
+          });
+        });
+        return d;
+      }
+      function manApp(s) {
+        const pg = MAN[s.cfg.id];
+        const v = el("div", "manview");
+        const side = el("div", "man-side");
+        const b1 = el("button", "on", pg.name);
+        const b2 = el("button", "man(7)");
+        side.append(b1, b2);
+        const main = el("div", "man-main");
+        main.append(manNode(pg));
+        const m7 = {
+          name: "man(7)",
+          sec: [
+            ["NAME", "man — 本体验场的手册系统"],
+            [
+              "DESCRIPTION",
+              "每个桌面会话内置一份该桌面的中文手册，概括其独特机制与默认键位。",
+              "在任意终端输入 man <名称>，或直接打开本应用。",
+            ],
+            ["SEE ALSO", `${pg.name} · 快捷键帮助（按 ？ 键）`],
+          ],
+        };
+        b1.onclick = () => {
+          b1.classList.add("on");
+          b2.classList.remove("on");
+          main.innerHTML = "";
+          main.append(manNode(pg));
+        };
+        b2.onclick = () => {
+          b2.classList.add("on");
+          b1.classList.remove("on");
+          main.innerHTML = "";
+          main.append(manNode(m7));
+        };
+        v.append(side, main);
+        v.append(
+          el(
+            "div",
+            "man-foot",
+            `Manual page ${pg.name} · 按 ？ 查看快捷键 · ✕ 关闭窗口`,
+          ),
+        );
+        return v;
+      }
+      function filesApp(s) {
+        const c = s.cfg;
+        const d = el("div", "files");
+        d.append(el("div", "f-path", "📁 /home/guest"));
+        const list = el("div", "f-list");
+        const rows = [
+          ["📁", "文档", "目录"],
+          ["📁", "下载", "目录"],
+          ["📁", "图片", "目录"],
+          ["📁", ".config", "目录"],
+          ["📄", "README.zh.md", "关于 " + c.name],
+        ];
+        rows.forEach(([ic, nm, ty]) => {
+          const r = el("div", "f-row", `${ic} ${nm}<small>${ty}</small>`);
+          r.onclick = () => {
+            if (nm === "README.zh.md") showDoc();
+            else toast(s, `/home/guest/${nm}：（模拟）空目录`);
+          };
+          list.append(r);
+        });
+        d.append(list);
+        const showDoc = () => {
+          d.innerHTML = "";
+          const bar = el("div", "f-path");
+          const back = el("button", "pbtn", "← 返回");
+          back.style.color = "inherit";
+          back.onclick = () => {
+            d.innerHTML = "";
+            d.append(bar0, list);
+          };
+          bar.append(back, ` /home/guest/README.zh.md`);
+          const doc = el(
+            "div",
+            "f-doc",
+            `<h4 style="color:${c.acc}">${c.name} · ${c.cn}</h4>
+      <p style="color:#9fb0c2">${c.desc}</p><h4>设计哲学</h4><p>${c.phil}</p>
+      <h4>快速上手</h4><ul style="margin-left:18px">${c.tips.map((t) => `<li>${t}</li>`).join("")}</ul>
+      <h4>延伸阅读</h4><p>打开「Man 手册」应用，或在终端输入 <kbd>man ${MAN[c.id].name.replace(/\(\d\)/, "")}</kbd></p>`,
+          );
+          d.append(bar, doc);
+        };
+        const bar0 = d.firstChild;
+        return d;
+      }
+      function editorApp(s) {
+        const d = el("div", "editor");
+        d.style.height = "100%";
+        const ta = el("textarea");
+        ta.value = `# ${s.cfg.name} 体验笔记\n# ${new Date().toLocaleString()}\n\n- 这个桌面最让我意外的一点：\n\n- 和 GNOME / KDE 相比：\n\n- 我会不会日常使用它？为什么？\n`;
+        d.append(ta);
+        return d;
+      }
+      function aboutApp(s) {
+        const c = s.cfg;
+        const d = el("div", "about");
+        d.innerHTML = `<h4 style="color:${c.acc}">${c.name}</h4><div class="sub">${c.cn}</div>
+  <dl>${c.stack.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
+  <p><b style="color:#8fc7ff">设计哲学</b><br>${c.phil}</p>`;
+        return d;
+      }
+
+      /* ============================================================ 全局键盘 */
+      const t0 = Date.now();
+      document.addEventListener(
+        "keydown",
+        (e) => {
+          if (!cur) return;
+          const s = cur,
+            c = s.cfg,
+            k = e.key.toLowerCase();
+          if (e.key === "Escape") {
+            closePopups(s);
+            return;
+          }
+          if (e.key === "?" || e.key === "F1") {
+            e.preventDefault();
+            helpOverlay(s);
+            return;
+          }
+          // i3 / sway：Mod = Alt
+          if ((c.id === "i3" || c.id === "sway") && e.altKey && !e.ctrlKey) {
+            e.preventDefault();
+            const vis = () =>
+              s.wins.filter((w) => w.dataset.ws == s.ws && !w.dataset.min);
+            const move = (dir) => {
+              const ws = vis();
+              if (!ws.length) return;
+              const order = {
+                h: [...ws].sort((a, b) => a.offsetLeft - b.offsetLeft),
+                v: [...ws].sort((a, b) => a.offsetTop - b.offsetTop),
+              };
+              const cur0 = s.focused;
+              let arr;
+              if (dir === "h" || dir === "l") arr = order.h;
+              else if (dir === "j") arr = order.v;
+              else if (dir === "k") arr = [...order.v].reverse();
+              else arr = [...order.h].reverse();
+              const i = arr.indexOf(cur0);
+              const nxt = arr[(i + 1 + arr.length) % arr.length] || arr[0];
+              focusWin(s, nxt);
+            };
+            const send = (dir) => {
+              const ws = vis();
+              if (!s.focused || !ws.includes(s.focused)) return;
+              const arr =
+                dir === "h" || dir === "l"
+                  ? ws.sort((a, b) => a.offsetLeft - b.offsetLeft)
+                  : ws.sort((a, b) => a.offsetTop - b.offsetTop);
+              const i = arr.indexOf(s.focused);
+              const o = arr[(i + 1) % arr.length];
+              if (o && o !== s.focused) {
+                const tp = {
+                  left: s.focused.style.left,
+                  top: s.focused.style.top,
+                };
+                s.focused.style.left = o.style.left;
+                s.focused.style.top = o.style.top;
+                o.style.left = tp.left;
+                o.style.top = tp.top;
+                layoutTiles(s);
+              }
+            };
+            switch (k) {
+              case "enter":
+                spawn(s, "term");
+                break;
+              case "d":
+                dmenuBar(s, c.id === "i3" ? "i3" : "wofi");
+                break;
+              case "q":
+                if (e.shiftKey && s.focused) closeWin(s, s.focused);
+                break;
+              case "h":
+              case "arrowleft":
+                e.shiftKey ? send("h") : move("h");
+                break;
+              case "l":
+              case "arrowright":
+                e.shiftKey ? send("l") : move("l");
+                break;
+              case "j":
+              case "arrowdown":
+                e.shiftKey ? send("j") : move("j");
+                break;
+              case "k":
+              case "arrowup":
+                e.shiftKey ? send("k") : move("k");
+                break;
+              case "f":
+                if (s.focused) toggleMax(s, s.focused);
+                break;
+              case "e":
+                if (e.shiftKey) exitDialog(s);
+                break;
+              case "1":
+              case "2":
+              case "3":
+              case "4":
+                if (e.shiftKey && s.focused) {
+                  s.focused.dataset.ws = +k;
+                  setWS(s, +k);
+                  toast(s, `窗口已移至工作区 ${k}`);
+                } else setWS(s, +k);
+                break;
+            }
+            return;
+          }
+          // COSMIC：Super 组合
+          if (c.id === "cosmic" && e.metaKey) {
+            s.metaUsed = true;
+            if (k === "/") {
+              e.preventDefault();
+              cosmicLauncher(s);
+            } else if (k === "t") {
+              e.preventDefault();
+              spawn(s, "term");
+            } else if (k === "y") {
+              e.preventDefault();
+              toggleCosmicTiling(s);
+            } else if (k === "a") {
+              e.preventDefault();
+              appLibrary(s);
+            } else if (["1", "2", "3", "4"].includes(k)) {
+              e.preventDefault();
+              setWS(s, +k);
+            }
+            return;
+          }
+          if (c.id === "cosmic" && e.key === "Meta" && !e.repeat) {
+            s.metaDown = true;
+            s.metaUsed = false;
+            return;
+          }
+          // GNOME：Super 单击 = 概览
+          if (e.key === "Meta" && !e.repeat) {
+            s.metaDown = true;
+            s.metaUsed = false;
+            if (c.id === "gnome") {
+              /* handled on keyup */
+            }
+            return;
+          }
+          if (c.id === "gnome" && e.metaKey) {
+            s.metaUsed = true;
+            if (k === "a") {
+              e.preventDefault();
+              appLibrary(s);
+            } else if (k === "arrowleft" && s.focused) {
+              e.preventDefault();
+              half(s.focused, "l");
+            } else if (k === "arrowright" && s.focused) {
+              e.preventDefault();
+              half(s.focused, "r");
+            } else if (k === "arrowup" && s.focused) {
+              e.preventDefault();
+              toggleMax(s, s.focused);
+            }
+            return;
+          }
+          // Budgie: Super+N → Raven
+          if (c.id === "budgie" && e.metaKey && k === "n") {
+            s.metaUsed = true;
+            e.preventDefault();
+            toggleRaven(s);
+            return;
+          }
+        },
+        true,
+      );
+      document.addEventListener("keyup", (e) => {
+        if (!cur) return;
+        const s = cur;
+        if (e.key === "Meta" && s.metaDown && !s.metaUsed) {
+          if (s.cfg.id === "gnome") openOverview(s);
+          else if (s.cfg.id === "cinnamon") {
+            const lb = $(".pbtn", s.root);
+            lb && openMenu(s, lb);
+          } else if (s.cfg.id === "budgie") {
+            const lb = $(".pbtn", s.root);
+            lb && openMenu(s, lb);
+          } else if (s.cfg.id === "cosmic") cosmicLauncher(s);
+        }
+        if (e.key === "Meta") s.metaDown = false;
+      });
+      function half(w, side) {
+        w.dataset.max = "";
+        w.style.top = "0";
+        w.style.height = "100%";
+        w.style.width = "50%";
+        w.style.left = side === "l" ? "0" : "50%";
+      }
+
+      /* DM 时钟 */
+      setInterval(() => {
+        const d = new Date();
+        const bc = $("#bigClock");
+        if (!bc) return;
+        bc.textContent = `${p2(d.getHours())}:${p2(d.getMinutes())}`;
+        $("#bigSec").textContent = ":" + p2(d.getSeconds());
+        $("#bigDate").textContent =
+          `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日 · 星期${WK[d.getDay()]}`;
+        $("#dmClock").textContent = d.toLocaleTimeString();
+      }, 500);
+
+      buildDM();
+    </script>
+  </body>
+</html>
